@@ -439,28 +439,7 @@ onComplete: async () => {
     swiperInstances.main.slideTo(index);
   }, [animationState.inProgress, state.activeProductIndex, swiperInstances.main]);
 
-  // // Обработчики событий мыши/касания
-  // const handleMouseEnter = useCallback((index, product) => {
-  //   if (!animationState.complete || animationState.inProgress) return;
-    
-  //   updateState({ hoveredIndex: index });
-  //   clearInterval(refs.current.hoverInterval);
-
-  //   refs.current.hoverInterval = setInterval(() => {
-  //     setState(prev => {
-  //       const newIndices = [...prev.selectedImageIndices];
-  //       const totalImages = 1 + (product.altImages?.length || 0);
-  //       const current = newIndices[index];
-  //       newIndices[index] = (current + 1) % totalImages;
-  //       return { ...prev, selectedImageIndices: newIndices };
-  //     });
-  //   }, 2050);
-  // }, [animationState.complete, animationState.inProgress]);
-
-  // const handleMouseLeave = useCallback((index) => {
-  //   updateState({ hoveredIndex: null });
-  //   clearInterval(refs.current.hoverInterval);
-  // }, []);
+  
 const handleMouseEnter = useCallback((index, product) => {
   if (isTouchDevice) return; // 🚫 на телефоне не запускаем
   if (!animationState.complete || animationState.inProgress) return;
