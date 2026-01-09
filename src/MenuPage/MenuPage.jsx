@@ -141,8 +141,8 @@ export default function MenuPage() {
            navigate("/catalogue")
         }
           
-          }
-        >explore
+          }>
+            explore
         </motion.button>
       </div>
     </div></>
