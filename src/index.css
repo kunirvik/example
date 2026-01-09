@@ -1,68 +1,121 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "tailwindcss";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+body{
+    background-color: black;
+}
+/* src/index.css или любой другой файл стилей */
+@layer base {
+    @font-face {
+        font-family: 'FuturaPT';
+        src: 
+            url('https://res.cloudinary.com/dbx6muxub/raw/upload/v1741964168/FuturaPT-Bold_l8usgk.woff2') format('woff2'),
+            url('https://res.cloudinary.com/dbx6muxub/raw/upload/v1741964168/FuturaPT-Bold_ygwo0q.woff') format('woff');
+        font-weight: bold;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'FuturaPT';
+        src: 
+           url('https://res.cloudinary.com/dbx6muxub/raw/upload/v1742040729/FuturaPT-Medium_zjdvl6.woff2') format('woff2'),
+            url('https://res.cloudinary.com/dbx6muxub/raw/upload/v1742040729/FuturaPT-Medium_wcqnj3.woff') format('woff');
+        
+        font-weight: 500;
+        font-style: normal;
+    }
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+
+    @font-face {
+        font-family: 'FuturaPT';
+        src: 
+           url('https://res.cloudinary.com/dbx6muxub/raw/upload/v1742041271/FuturaPT-Light_favijz.woff2') format('woff2'),
+            url('https://res.cloudinary.com/dbx6muxub/raw/upload/v1742041271/FuturaPT-Light_mnwgxb.woff') format('woff');
+           
+        font-weight: light;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: 'FuturaPT';
+        src: 
+           url('https://res.cloudinary.com/dbx6muxub/raw/upload/v1742042711/FuturaPT-LightObl_zoeqhl.woff2') format('woff2'),
+            url('https://res.cloudinary.com/dbx6muxub/raw/upload/v1742042711/FuturaPT-LightObl_zk6kkq.woff') format('woff');
+           
+        font-weight: light;
+        font-style: oblique;
+    }
+
 }
 
-a {
+ @keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.marquee {
+  position: relative;
+  width: 100%;
+  height: 1.5rem;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.track {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 20s linear infinite;
+}
+
+.track span {
+  display: inline-block;
+  padding-right: 2rem; /* расстояние между повторениями */
+  font-family: Futura, sans-serif;
+  font-size: 0.9rem;
   font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
   }
-  a:hover {
-    color: #747bff;
+  100% {
+    transform: translateX(-50%);
   }
-  button {
-    background-color: #f9f9f9;
-  }
+}
+ 
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease forwards;
+}
+ 
+
+.font-futura {
+    font-family: 'FuturaPT', sans-serif !important;
+    
+}
+
+
+.custom-swiper-pagination {
+
+ background: #ff00fb00;
+
+}
+ 
+/* Цвет обычной точки */
+.custom-swiper-pagination .swiper-pagination-bullet {
+  width: 5px;
+  height: 5px;
+  background: #888; /* обычный серый */
+  opacity: 0.5;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+} 
+
+.custom-swiper-pagination .swiper-pagination-bullet-active {
+  background: #609273; /* ярко-розовый */
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.hide-tooltip .mobile-tooltip {
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
