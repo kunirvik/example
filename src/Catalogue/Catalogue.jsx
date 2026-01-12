@@ -296,10 +296,10 @@ return (
           />
    {/* mobileTooltipProductId === product.id &&      */}
       {isMobile && (
-            <div className="mobile-tooltip absolute bottom-3 left-1/2 -translate-x-1/2 
-               text-white text-base sm:text-lg 
-              px-4 py-2 rounded-xl shadow-xl animate-fadeIn 
-              font-light leading-snug w-[90%] max-w-xs text-start z-20">
+            <div className="mobile-tooltip absolute left-1/2 -translate-x-1/2 
+               text-white text-base sm:text-lg font-futura bg-black font-bold
+              px-2 py-2  animate-fadeIn 
+               z-20">
               {product.name}
             </div>
           )}

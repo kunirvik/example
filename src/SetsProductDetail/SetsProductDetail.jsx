@@ -60,7 +60,7 @@ const isDesktop = () => window.innerWidth >= 1024; // или другой пор
 // Состояние для управления аккордеонами
 const [accordionState, setAccordionState] = useState({
  purchase: null,      // открыт по умолчанию
-  product:null,
+  product:0,
   virobi: null,     // закрыт по умолчанию
 });
 
@@ -433,7 +433,7 @@ onComplete: async () => {
   // 👇 Закрываем описание ДО смены продукта
     setAccordionState(prev => ({
       purchase: null,
-      product: null, // закрываем описание
+      product: 0, // закрываем описание
       virobi: prev.virobi,
     }));
 
@@ -543,6 +543,8 @@ const handleTouchEnd = useCallback(() => {
 
 const handleAccordionToggle = (type) => (index) => {
   setAccordionState(prev => {
+     
+
     if (type === 'virobi') {
       // При открытии вироби - просто открываем галерею, НЕ трогая другие аккордеоны
       if (prev.virobi !== index) {
@@ -688,7 +690,7 @@ useEffect(() => {
 
         <div
           ref={el => refs.current.container = el}
-          className="w-full flex-grow mt-[50px] mx-auto px-4"
+          className="w-full flex-grow mt-[70px] lg:mt-[50px] mx-auto px-4"
           style={{
             opacity: shouldShowLoading && !loadingState.isCompleted ? 0 : 1,
           }}
@@ -727,6 +729,7 @@ useEffect(() => {
   controlled={true}
   openIndex={accordionState.product}
   onToggle={handleAccordionToggle('product')}
+
 /> </div>
 
   <div ref={el => refs.current.purchaceAccordion = el} style={{
@@ -785,7 +788,7 @@ useEffect(() => {
   {/* SWIPER ГАЛЕРЕЯ ПРАВОРУЧ (на десктопі) */}
   <div
     ref={el => refs.current.swiperContainer = el}
-    className="w-full lg:w-[75%] lg:h-[100%] mt-30 lg:mt-10 lg:content-center"
+    className="w-full lg:w-[75%] lg:h-[100%] mt-10 lg:mt-10 lg:content-center"
     style={{
       visibility: !imageData || animationState.complete ? "visible" : "hidden",
       opacity: !imageData || animationState.complete ? 1 : 0,
@@ -845,7 +848,7 @@ useEffect(() => {
     </div>    
       <div
           ref={el => refs.current.thumbs = el}
-         className="w-full mt-20"
+         className="w-full mt-5 lg:mt-20"
           style={{
             opacity: state.thumbsShown ? 1 : 0,
           }}

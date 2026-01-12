@@ -177,7 +177,7 @@ const Accordion = ({
               className="cursor-pointer relative w-full flex justify-between items-center py-1 text-left text-gray-900 hover:text-gray-300 transition-colors group"
               onClick={() => toggleAccordion(index)}
             >
-              <span className="font-futura text-[clamp(28px,5vw,50px)] tracking-[clamp(-1px,-0.4vw,-4px)] font-bold text-[#717171]">
+              <span className="font-futura text-[clamp(40px,5vw,50px)] tracking-[clamp(-1px,-0.4vw,-4px)] font-bold text-[#717171]">
                 {item.title}
               </span>
               {isOpen ? (
@@ -197,10 +197,10 @@ const Accordion = ({
 
             <div
               className={`transition-all duration-300 overflow-hidden ${
-                isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                isOpen ? "min-h-[200px] opacity-100" : "max-h-0 opacity-0"
               }`}
             >
-              <div className="text-[#717171] text-[clamp(10px,2vw,17px)] tracking-[clamp(-1px,-0.2vw,-1px)] max-h-[5000px] relative">
+              <div className="text-[#717171] text-[clamp(15px,2vw,17px)] tracking-[clamp(-1px,-0.2vw,-1px)] max-h-[5000px] relative">
                 {item.content}
               </div>
             </div>

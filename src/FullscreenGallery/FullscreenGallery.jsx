@@ -97,7 +97,7 @@ if (!isOpen) return null;
   return (
     <div
       ref={containerRef}
-      className="fixed top-0 left-0 w-full h-full z-[9999] bg-black bg-opacity-95 overflow-y-auto"
+      className="fixed top-0 left-0 w-full h-full z-[99999999999999] bg-black bg-opacity-95 overflow-y-auto"
       style={{ opacity: 0, transform: "translateY(100%)" }}
     >
       {/* ✖ Закрытие */}
