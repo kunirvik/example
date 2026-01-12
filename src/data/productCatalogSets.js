@@ -81,5 +81,37 @@ const productCatalogSets = [ {
     // ],
     relatedProducts: [2, 3, 4, 5] // IDs of related products
   },
+
+  {
+    id: 6,
+    name: "quater",
+     image: "/images/sets/quaterr215h80w125d40.png",
+    altImages: ["/images/sets/quaterr215h80w125d40left.png", "/images/sets/quaterr215h80w125d40top.png"],
+     sample: ["/images/sample/quater.webp",  "/images/sample/box.webp",],
+  
+    year: 2023,
+    description: "Комплекты для самостоятельного строительства элементов.",
+      description2: "квотер - неотъемлемая часть любого парка, чаще всего устанавливается по обе стороны площадки и помогает сохранять инерцию на площадке. набирать скорость или гасить её. квотера могут быть любого размера и их можно использовать для  трюков, разного размера квотера можно совмещать друг с другом - усовершенствуя площадку и открывать новые опции для катания и выполнения трюков",
+    details: [
+        { title: "Каталог фигур", link: "#catalog" },
+
+
+    ],
+    relatedProducts: [1, 2, 3, 4] // IDs of related products
+  },
+  {id: 7,
+    name: "box",
+    image: "/images/sets/kicker2.png",
+    altImages: ["/images/160yolobox1.jpg", "/images/160yolobox1.jpg", "/images/160yolobox1.jpg", "/images/160yolobox1.jpg", "/images/160yolobox1.jpg","/images/160yolobox1.jpg","/images/160yolobox1.jpg","/images/160yolobox1.jpg","/images/160yolobox1.jpg","/images/160yolobox1..jpg", "/images/160yolobox1..jpg", "/images/160yolobox1..jpg",  ],
+    sample: ["/images/sample/kicker1.webp", ],
+ 
+    year: 2023,
+    description: "Пиши нам у месенджер або кидай заявку — ми зателефонуємо й усе обговоримо. Замов фігуру для скейтпарку під себе — міцну, надійну й готову до катки. Власне виробництво, ручна збірка, доставка по Україні.",
+     description2: "Всі фігури зроблені в Україні, для українських умов. Дощ, сонце, мороз — їм по барабану. Мiцна фанера, покриття, яке не відпускає. Доставка туди, де ти збираєш свою банду.Не чекай ідеального парку — створи його сам. Фігура за фігурою. Трюк за трюком.",
+    // details: [
+    //  { title: "побудовані фігури", link: "#catalog" },
+    // ],
+    relatedProducts: [2, 3, 4, 5] // IDs of related products
+  },
 ]  ;
 export default productCatalogSets

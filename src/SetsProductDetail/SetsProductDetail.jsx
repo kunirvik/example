@@ -796,8 +796,8 @@ useEffect(() => {
   >
   
    {/* Працюємо з металом, бетоном і фанерою.  */}
-    <div className="w-full flex flex-row items-start justify-between gap-2">
-      <div className="w-[80%]">
+    <div className="w-full flex flex-row items-center justify-between gap-2">
+      <div className="w-[100%]">
         <Swiper
           className="custom-swiper h-[250px] sm:h-[300px] md:h-[350px]"
           modules={[Pagination, Mousewheel, Thumbs]}

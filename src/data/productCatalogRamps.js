@@ -100,5 +100,6 @@ sample: ["/images/sample/skateparks/skatepark1.jpg",  "/images/sample/skateparks
     ],
     relatedProducts: [1, 2, 3, 4, 5, 6, 7] // IDs of related products
   },
+  
 ]
 export default productCatalogRamps
