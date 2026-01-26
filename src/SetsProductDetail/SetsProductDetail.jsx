@@ -12,6 +12,7 @@ import "swiper/css";
 import "swiper/css/pagination"; 
 // import { ChevronDown, ChevronUp } from "lucide-react";
 import Accordion from "../Accordion/Accordion";
+
 import ContactButton from "../ContactButtons/ContactButton";
 import Footer from "../Footer/Footer"
 // Константы
@@ -549,6 +550,10 @@ const handleAccordionToggle = (type) => (index) => {
       // При открытии вироби - просто открываем галерею, НЕ трогая другие аккордеоны
       if (prev.virobi !== index) {
         openGallery(state.activeProductIndex);
+         return {
+        ...prev,
+        virobi: null, // всегда закрыто
+      };
       }
       return {
         virobi: prev.virobi === index ? null : index,
@@ -690,7 +695,7 @@ useEffect(() => {
 
         <div
           ref={el => refs.current.container = el}
-          className="w-full flex-grow mt-[70px] lg:mt-[50px] mx-auto px-4"
+          className="w-full flex-grow mt-[70px] lg:mt-[50px] px-4"
           style={{
             opacity: shouldShowLoading && !loadingState.isCompleted ? 0 : 1,
           }}
@@ -702,69 +707,93 @@ useEffect(() => {
 
   
 
-<div className="w-full lg:h-[50%] flex flex-col lg:flex-row lg:content-center relative">
+<div className="w-full h-[50%] flex flex-col lg:flex-row relative">
  {/* ІНФОРМАЦІЙНА ПАНЕЛЬ ЛІВОРУЧ (на десктопі) */}
- <div className="flex flex-col">    
+
+<div className="flex lg:flex-col w-full">
+  {/* На десктопе - три отдельных аккордеона (как сейчас) */}
+  {/* На мобилке - один общий с табами */}
+  
+  {/* DESKTOP: показываем три отдельных аккордеона */}
+  <div className="hidden lg:block w-full">
     <div
-    ref={el => refs.current.info = el}
-    className="w-full lg:w-[100%]  flex flex-col justify  lg:mt-10 "
-    style={{
-      opacity:
-        animationState.slideChanging || (!animationState.complete && imageData)
-          ? 0
-          : 1,
-      transform:
-        animationState.slideChanging || (!animationState.complete && imageData)
-          ? "translateY(20px)"
-          : "translateY(0)",
-      pointerEvents: animationState.slideChanging ? "none" : "auto",
-    }}
-  >
+      ref={el => refs.current.info = el}
+      className="w-full flex flex-col  lg:mt-10"
+      style={{
+        opacity: animationState.slideChanging || (!animationState.complete && imageData) ? 0 : 1,
+        transform: animationState.slideChanging || (!animationState.complete && imageData) ? "translateY(20px)" : "translateY(0)",
+        pointerEvents: animationState.slideChanging ? "none" : "auto",
+      }}
+    >
+      <Accordion
+        items={[
+          {title: currentProduct.name, content: currentProduct.description2 },
+        ]}
+        controlled={true}
+        openIndex={accordionState.product}
+        onToggle={handleAccordionToggle('product')}
+      />
+    </div>
 
+    <div 
+      className="w-full" 
+      ref={el => refs.current.purchaceAccordion = el} 
+      style={{ opacity: state.purchaseShown ? 1 : 0 }}
+    > 
+      <Accordion
+        items={[
+          { title: "замовити", content: (<>{currentProduct.description} <ContactButton/></>) },
+        ]}
+        controlled={true}
+        openIndex={accordionState.purchase}
+        onToggle={handleAccordionToggle('purchase')}
+      />
+    </div>
 
-<Accordion
-  items={[
-    {title: currentProduct.name, content: currentProduct.description2 },
-  ]}
-  controlled={true}
-  openIndex={accordionState.product}
-  onToggle={handleAccordionToggle('product')}
+    <div 
+      className="w-full" 
+      ref={el => refs.current.productionAccordion = el} 
+      style={{ opacity: state.productionShown ? 1 : 0 }}
+    > 
+      <Accordion
+        items={[
+          { title: "вироби" },
+        ]}
+        controlled={true}
+        openIndex={accordionState.virobi}
+        onToggle={handleAccordionToggle('virobi')}
+      />
+    </div>
+  </div>
 
-/> </div>
-
-  <div ref={el => refs.current.purchaceAccordion = el} style={{
-            opacity: state.purchaseShown ? 1 : 0,
-          }} > 
+  {/* MOBILE: один аккордеон с тремя табами */}
+  <div className="block lg:hidden w-full">
     <Accordion
-  items={[
-    { title: "замовити", content: (<>{currentProduct.description} <ContactButton/></>) },
-  ]}
-  controlled={true}
-  openIndex={accordionState.purchase}
-  onToggle={handleAccordionToggle('purchase')}
-/>
+      items={[
+        { title: currentProduct.name, content: currentProduct.description2 },
+        { title: "замовити", content: (<>{currentProduct.description} <ContactButton/></>) },
+        { title: "вироби", content: null }
+      ]}
+      mobileMode={true}
+      controlled={true}
+      openIndex={
+        accordionState.product === 0 ? 0 : 
+        accordionState.purchase === 0 ? 1 : 
+        accordionState.virobi === 0 ? 2 : 
+        null
+      }
+      onToggle={(index) => {
+        if (index === 0) handleAccordionToggle('product')(0);
+        else if (index === 1) handleAccordionToggle('purchase')(0);
+        else if (index === 2) handleAccordionToggle('virobi')(0);
+      }}
+    />
+  </div>
 </div>
 
-  <div ref={el => refs.current.productionAccordion = el} style={{
-            opacity: state.productionShown ? 1 : 0,
-          }} > 
-<Accordion
-  items={[
-    { 
-      title: "вироби", 
- 
-    },
-  ]}
-  controlled={true}
-  openIndex={accordionState.virobi}
-  onToggle={handleAccordionToggle('virobi')}
-/>
+=
 
-
-
-
-</div>
-  </div> {/* Переходное изображение */}
+ {/* Переходное изображение */}
   {!animationState.complete && imageData && (
     <div className="transition-image-container">
       <img
@@ -788,7 +817,7 @@ useEffect(() => {
   {/* SWIPER ГАЛЕРЕЯ ПРАВОРУЧ (на десктопі) */}
   <div
     ref={el => refs.current.swiperContainer = el}
-    className="w-full lg:w-[75%] lg:h-[100%] mt-10 lg:mt-10 lg:content-center"
+    className="w-full lg:w-[75%] lg:h-[100%] mt-10 lg:mt-10  lg:content-center"
     style={{
       visibility: !imageData || animationState.complete ? "visible" : "hidden",
       opacity: !imageData || animationState.complete ? 1 : 0,
@@ -899,12 +928,12 @@ useEffect(() => {
   </div>  
    </div>   
     
-  <div className="hidden  lg:block z-20000 text-right mb-10">
-  <p className="font-futura text-[#717171] font-medium text-[35px] tracking-[-1px]">Не чекай ідеального парку — створи його сам. Фігура за фігурою. Трюк за трюком.
+  {/* <div className="hidden  lg:block z-20000 text-right mb-10"> */}
+  {/* <p className="font-futura text-[#717171] font-medium text-[35px] tracking-[-1px]">Не чекай ідеального парку — створи його сам. Фігура за фігурою. Трюк за трюком.
 
     
-  </p>
-</div>
+  </p> */}
+{/* </div> */}
   <Footer></Footer> 
   
    </div>  

@@ -18,6 +18,20 @@ export default {
     },
     },
     plugins: [],
+
+    theme: {
+  extend: {
+    animation: {
+      fade: "fadeEffect 0.3s ease-in-out",
+    },
+    keyframes: {
+      fadeEffect: {
+        from: { opacity: 0 },
+        to: { opacity: 1 },
+      },
+    },
+  },
+},
   };
 
   
