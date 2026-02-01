@@ -583,7 +583,7 @@ const Accordion = ({
   return (
     <div className="w-full">
       {/* ---------- Active Product Title ---------- */}
-      <div className="relative h-[28px] mb-3 overflow-hidden ">
+      <div className="relative mb-3 overflow-hidden ">
         {items.map((item, index) => {
           const isActive = openIndex === index;
 
@@ -619,7 +619,7 @@ const Accordion = ({
               <button
                 key={index}
                 onClick={() => toggleAccordion(index)}
-                className={`relative text-[30px] font-futura font-bold text-lg transition-colors ${
+                className={`relative  text-[clamp(26px,3vw,26px)] whitespace-nowrap font-futura font-bold text-lg transition-colors ${
                   isActive ? "text-green-700" : "text-gray-400"
                 }`}
                 
