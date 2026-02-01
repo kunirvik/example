@@ -431,12 +431,34 @@ onComplete: async () => {
 
     const oldIndex = state.activeProductIndex;
     updateAnimationState({ slideChanging: true, inProgress: true });
-  // 👇 Закрываем описание ДО смены продукта
+  // // 👇 Закрываем описание ДО смены продукта
+  //   setAccordionState(prev => ({
+  //     purchase: null,
+  //     product: 0, // закрываем описание
+  //     virobi: prev.virobi,
+  //   }));
+
+
+  // 👇 Проверяем, мобильное ли устройство
+  const isMobile = window.innerWidth < 1024;
+
+  if (isMobile) {
+    // 👇 На МОБИЛЬНОМ: закрываем все табы перед сменой
+    setAccordionState({
+      purchase: null,
+      product: null,
+      virobi: null,
+    });
+  } else {
+    // 👇 На ДЕСКТОПЕ: закрываем только purchase, описание остается
     setAccordionState(prev => ({
       purchase: null,
       product: 0, // закрываем описание
       virobi: prev.virobi,
     }));
+  }
+
+
 
     await animateInfo('out');
 
@@ -458,6 +480,20 @@ onComplete: async () => {
     }
 
     updateAnimationState({ slideChanging: false, inProgress: false });
+
+
+     if (isMobile) {
+    // 👇 На МОБИЛЬНОМ: задержка перед открытием первого таба
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    setAccordionState({
+      purchase: null,
+      product: 0, // открываем описание
+      virobi: null,
+    });
+  } 
+
+
     await animateInfo('in');
     clearInterval(refs.current.hoverInterval);
     refs.current.hoverInterval = null;
@@ -482,6 +518,7 @@ onComplete: async () => {
     }, SWIPER_CONFIG.SPEED);
   }, [state.activeProductIndex, animationState.inProgress, swiperInstances.thumbs, 
       updateUrl, animateInfo, updateAnimationState, isPointerOverSwiper, startHoverInterval]);
+
 
   const handleThumbnailClick = useCallback((index) => {
     if (animationState.inProgress || index === state.activeProductIndex || !swiperInstances.main) 
@@ -769,6 +806,7 @@ useEffect(() => {
   {/* MOBILE: один аккордеон с тремя табами */}
   <div className="block lg:hidden w-full">
     <Accordion
+     key={state.activeProductIndex} 
       items={[
         { title: currentProduct.name, content: currentProduct.description2 },
         { title: "замовити", content: (<>{currentProduct.description} <ContactButton/></>) },
@@ -791,7 +829,7 @@ useEffect(() => {
   </div>
 </div>
 
-=
+
 
  {/* Переходное изображение */}
   {!animationState.complete && imageData && (

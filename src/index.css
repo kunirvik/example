@@ -45,6 +45,23 @@ body{
     }
 
 }
+ @keyframes tabUnderline {
+  from {
+    transform: scaleX(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.animate-tab-underline {
+  transform-origin: center;
+  animation: tabUnderline 0.25s ease-out;
+}
+
+
 
  @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
