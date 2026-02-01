@@ -540,42 +540,42 @@ const Accordion = ({
     );
   }
 
-  /* =====================================================
-     ============== MOBILE ACCORDION =====================
-     ===================================================== */
-  if (!mobileMode) {
-    return (
-      <div className="w-full">
-        {items.map((item, index) => {
-          const isOpen = openIndex === index;
+  // /* =====================================================
+  //    ============== MOBILE ACCORDION =====================
+  //    ===================================================== */
+  // if (!mobileMode) {
+  //   return (
+  //     <div className="w-full">
+  //       {items.map((item, index) => {
+  //         const isOpen = openIndex === index;
 
-          return (
-            <div key={index} className="mb-2">
-              <button
-                className="w-full flex justify-between items-center py-3 border-b"
-                onClick={() => toggleAccordion(index)}
-              >
-                <span className="font-futura font-bold text-[#717171]">
-                  {item.title}
-                </span>
-                {isOpen ? <ChevronUp /> : <ChevronDown />}
-              </button>
+  //         return (
+  //           <div key={index} className="mb-2">
+  //             <button
+  //               className="w-full flex justify-between items-center py-3 border-b"
+  //               onClick={() => toggleAccordion(index)}
+  //             >
+  //               <span className="font-futura font-bold text-[#717171]">
+  //                 {item.title}
+  //               </span>
+  //               {isOpen ? <ChevronUp /> : <ChevronDown />}
+  //             </button>
 
-              <div
-                className={`transition-all duration-300 overflow-hidden ${
-                  isOpen ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0"
-                }`}
-              >
-                <div className="text-sm text-[#717171] py-3">
-                  {item.content}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
+  //             <div
+  //               className={`transition-all duration-300 overflow-hidden ${
+  //                 isOpen ? "max-h-[5000px] opacity-100" : "max-h-0 opacity-0"
+  //               }`}
+  //             >
+  //               <div className="text-sm text-[#717171] py-3">
+  //                 {item.content}
+  //               </div>
+  //             </div>
+  //           </div>
+  //         );
+  //       })}
+  //     </div>
+  //   );
+  // }
 
   /* =====================================================
      ================= MOBILE TABS =======================
@@ -619,7 +619,7 @@ const Accordion = ({
               <button
                 key={index}
                 onClick={() => toggleAccordion(index)}
-                className={`relative  text-[clamp(26px,3vw,26px)] whitespace-nowrap font-futura font-bold text-lg transition-colors ${
+                className={`relative  text-[clamp(24px,3vw,26px)] whitespace-nowrap font-futura font-bold text-lg transition-colors ${
                   isActive ? "text-green-700" : "text-gray-400"
                 }`}
                 
