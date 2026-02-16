@@ -720,7 +720,7 @@ useEffect(() => {
 
   return (
     <>
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col border-2 border-indigo-200 min-h-screen">
         <div className="z-50 flex-shrink-0">
           <SocialButtons
             buttonLabel="shop"
@@ -744,7 +744,7 @@ useEffect(() => {
 
   
 
-<div className="w-full h-[50%] flex flex-col lg:flex-row relative">
+<div className="w-full border-2 border-indigo-600 h-[50%] flex flex-col lg:flex-row relative">
  {/* ІНФОРМАЦІЙНА ПАНЕЛЬ ЛІВОРУЧ (на десктопі) */}
 
 <div className="flex lg:flex-col w-full">
@@ -808,21 +808,21 @@ useEffect(() => {
     <Accordion
      key={state.activeProductIndex} 
       items={[
-        { title: currentProduct.name, content: currentProduct.description2 },
         { title: "замовити", content: (<>{currentProduct.description} <ContactButton/></>) },
+        { title: currentProduct.name, content: currentProduct.description2 },
         { title: "вироби", content: null }
       ]}
       mobileMode={true}
       controlled={true}
       openIndex={
-        accordionState.product === 0 ? 0 : 
-        accordionState.purchase === 0 ? 1 : 
+        accordionState.purchase === 0 ? 0 : 
+        accordionState.product === 0 ? 1 : 
         accordionState.virobi === 0 ? 2 : 
         null
       }
       onToggle={(index) => {
-        if (index === 0) handleAccordionToggle('product')(0);
-        else if (index === 1) handleAccordionToggle('purchase')(0);
+        if (index === 0) handleAccordionToggle('purchase')(0);
+        else if (index === 1) handleAccordionToggle('product')(0);
         else if (index === 2) handleAccordionToggle('virobi')(0);
       }}
     />
@@ -983,8 +983,7 @@ useEffect(() => {
           isOpen={state.isGalleryOpen}
           onClose={closeGallery}
         />
-
-    
+{/* <div className="w-full h-[500px] text-white text-[110px] font-futura font-bold tracking-[-1px]">parkramps spot 057 ziggurat</div> */}
     </>
   );
 }

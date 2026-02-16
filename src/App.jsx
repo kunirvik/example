@@ -8,6 +8,7 @@ import ProjectPage from "./ProjectPage/ProjectPage"
 import './App.css'
 import SetsProductDetail from "./SetsProductDetail/SetsProductDetail";
 import Catalogue from "./Catalogue/Catalogue";
+import BlogPage from "./blog/components/BlogPage";
 
 
 
@@ -19,7 +20,7 @@ function App() {
       
     <Routes location={location} key={location.pathname}>
         <Route path="/" element={<MenuPage />} />
-        
+         <Route path="/blog" element={<BlogPage />} />
         <Route  path="/catalogue" element={<Catalogue />} />
     
        <Route path="/product/sets/:id" element={<SetsProductDetail />} />

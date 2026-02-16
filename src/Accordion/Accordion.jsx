@@ -515,7 +515,7 @@ const Accordion = ({
           return (
             <div key={index} className="w-full">
               <button
-                className="w-full flex justify-between items-center py-1 text-left transition-colors"
+                className="w-full cursor-pointer flex justify-between items-center py-1 text-left transition-colors"
                 onClick={() => toggleAccordion(index)}
               >
                 <span className="font-futura text-[clamp(40px,5vw,50px)] font-bold text-[#717171]">
@@ -583,7 +583,7 @@ const Accordion = ({
   return (
     <div className="w-full">
       {/* ---------- Active Product Title ---------- */}
-      <div className="relative mb-3 overflow-hidden ">
+      <div className="relative  mb-3 overflow-hidden ">
         {items.map((item, index) => {
           const isActive = openIndex === index;
 
@@ -609,7 +609,7 @@ const Accordion = ({
         })}
       </div>
 
-      {/* ---------- Tabs Navigation ---------- */}
+      {/* ---------- Tabs Navigation ----------
       <div className="overflow-x-auto scrollbar-hide mb-4">
         <div className="grid grid-cols-[1.3fr_1fr_1fr] gap-4 gap-3 pb-2 border-b">
           {items.map((item, index) => {
@@ -619,7 +619,7 @@ const Accordion = ({
               <button
                 key={index}
                 onClick={() => toggleAccordion(index)}
-                className={`relative  text-[clamp(24px,3vw,26px)] whitespace-nowrap font-futura font-bold text-lg transition-colors ${
+                className={`relative  cursor-pointer text-[clamp(24px,3vw,26px)] whitespace-nowrap font-futura font-bold text-lg transition-colors ${
                   isActive ? "text-green-700" : "text-gray-400"
                 }`}
                 
@@ -632,8 +632,34 @@ const Accordion = ({
             );
           })}
         </div>
-      </div>
+      </div> */}
+{/* ---------- Tabs Navigation ---------- */}
+<div className="mb-4">
+  <div className="grid grid-cols-3 border-b">
+    {items.map((item, index) => {
+      const isActive = openIndex === index;
 
+      return (
+        <button
+          key={index}
+          onClick={() => toggleAccordion(index)}
+          className={`
+            relative cursor-pointer pb-2 px-2
+            font-futura font-bold text-base
+            text-center whitespace-nowrap overflow-hidden text-ellipsis
+            transition-colors
+            ${isActive ? "text-green-700" : "text-gray-400"}
+          `}
+        >
+          {item.title}
+          {isActive && (
+            <span className="absolute left-0 bottom-0 w-full h-[2px] bg-gray-500" />
+          )}
+        </button>
+      );
+    })}
+  </div>
+</div>
       {/* ---------- Tab Content ---------- */}
       <div className="relative min-h-[120px] overflow-hidden">
         {items.map((item, index) => {
