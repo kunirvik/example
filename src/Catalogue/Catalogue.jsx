@@ -240,7 +240,7 @@ return (
     <div className="bg-black flex flex-col min-h-screen relative">
 
       {/* SocialButtons всегда вверху */}
-      <div className="z-50 flex-shrink-0">
+      <div className="z-50  flex-shrink-0">
         <SocialButtons
           buttonLabel="gallery"
           onButtonClick={handleExit}

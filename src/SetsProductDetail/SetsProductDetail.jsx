@@ -57,8 +57,9 @@ const isDesktop = () => window.innerWidth >= 1024; // или другой пор
 
   }));
 
+const galleryInHistory = useRef(false); 
 
-// Состояние для управления аккордеонами
+
 const [accordionState, setAccordionState] = useState({
  purchase: null,      // открыт по умолчанию
   product:0,
@@ -273,25 +274,64 @@ const [accordionState, setAccordionState] = useState({
     return !!el && refs.current.swiperContainer.contains(el);
   }, []);
 
- const openGallery = useCallback(() => {
-    // Пересчитываем индекс каждый раз при открытии галереи
-    const productStartIndex = productCatalogSets
-      .slice(0, state.activeProductIndex)
-      .reduce((acc, p) => acc + (p.sample?.length || 0), 0);
+//  const openGallery = useCallback(() => {
+//     // Пересчитываем индекс каждый раз при открытии галереи
+//     const productStartIndex = productCatalogSets
+//       .slice(0, state.activeProductIndex)
+//       .reduce((acc, p) => acc + (p.sample?.length || 0), 0);
 
-    const startIndex = currentProduct.sample?.length ? productStartIndex : 0;
+//     const startIndex = currentProduct.sample?.length ? productStartIndex : 0;
 
-    updateState({
-      galleryStartIndex: startIndex,
-      isGalleryOpen: true
-    });
-  }, [state.activeProductIndex, currentProduct, updateState]);
+//     updateState({
+//       galleryStartIndex: startIndex,
+//       isGalleryOpen: true
+//     });
+//   }, [state.activeProductIndex, currentProduct, updateState]);
  
 
-    const closeGallery = useCallback(() => {
-  updateState({ isGalleryOpen: false });
-}, []);
-  // Отдельная функция для показа инфо и миниатюр
+//     const closeGallery = useCallback(() => {
+//   updateState({ isGalleryOpen: false });
+// }, []);
+  
+
+const openGallery = useCallback(() => {
+  const productStartIndex = productCatalogSets
+    .slice(0, state.activeProductIndex)
+    .reduce((acc, p) => acc + (p.sample?.length || 0), 0);
+
+  const startIndex = currentProduct.sample?.length ? productStartIndex : 0;
+
+  updateState({ galleryStartIndex: startIndex, isGalleryOpen: true });
+
+  // Пушим только если ещё нет в истории
+  if (!galleryInHistory.current) {
+    galleryInHistory.current = true;
+    window.history.pushState({ galleryOpen: true }, '');
+  }
+}, [state.activeProductIndex, currentProduct, updateState]);
+
+
+const closeGallery = useCallback(() => {
+  if (galleryInHistory.current) {
+    galleryInHistory.current = false;
+    window.history.back(); // popstate сам закроет
+  } else {
+    updateState({ isGalleryOpen: false });
+  }
+}, [updateState]);
+
+
+useEffect(() => {
+  const handlePopState = () => {
+    galleryInHistory.current = false;
+    updateState({ isGalleryOpen: false });
+  };
+
+  window.addEventListener('popstate', handlePopState);
+  return () => window.removeEventListener('popstate', handlePopState);
+}, [updateState]); // 👈 без state.isGalleryOpen в зависимостях
+
+
 const showInfoAndThumbs = useCallback(() => {
   const animations = [];
 
@@ -723,6 +763,7 @@ useEffect(() => {
       <div className="flex flex-col border-2 border-indigo-200 min-h-screen">
         <div className="z-50 flex-shrink-0">
           <SocialButtons
+          
             buttonLabel="shop"
             onButtonClick={() => navigate("/catalogue")}
             buttonAnimationProps={{ whileTap: { scale: 0.85, opacity: 0.6 } }}
@@ -748,14 +789,13 @@ useEffect(() => {
  {/* ІНФОРМАЦІЙНА ПАНЕЛЬ ЛІВОРУЧ (на десктопі) */}
 
 <div className="flex lg:flex-col w-full">
-  {/* На десктопе - три отдельных аккордеона (как сейчас) */}
-  {/* На мобилке - один общий с табами */}
+
   
   {/* DESKTOP: показываем три отдельных аккордеона */}
-  <div className="hidden lg:block w-full">
+  <div className="hidden lg:block border-2 border-indigo-200 w-full">
     <div
       ref={el => refs.current.info = el}
-      className="w-full flex flex-col  lg:mt-10"
+      className="w-full border-2 border-indigo-200 flex flex-col  "
       style={{
         opacity: animationState.slideChanging || (!animationState.complete && imageData) ? 0 : 1,
         transform: animationState.slideChanging || (!animationState.complete && imageData) ? "translateY(20px)" : "translateY(0)",
@@ -855,7 +895,7 @@ useEffect(() => {
   {/* SWIPER ГАЛЕРЕЯ ПРАВОРУЧ (на десктопі) */}
   <div
     ref={el => refs.current.swiperContainer = el}
-    className="w-full lg:w-[75%] lg:h-[100%] mt-10 lg:mt-10  lg:content-center"
+    className="w-full border-2 border-indigo-200 lg:w-[75%] lg:h-[100%] mt-10 lg:mt-0  lg:content-center"
     style={{
       visibility: !imageData || animationState.complete ? "visible" : "hidden",
       opacity: !imageData || animationState.complete ? 1 : 0,

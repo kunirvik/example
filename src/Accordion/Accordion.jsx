@@ -645,10 +645,10 @@ const Accordion = ({
           onClick={() => toggleAccordion(index)}
           className={`
             relative cursor-pointer pb-2 px-2
-            font-futura font-bold text-base
+            font-futura font-bold text-[clamp(20px,3vw,26px)]
             text-center whitespace-nowrap overflow-hidden text-ellipsis
             transition-colors
-            ${isActive ? "text-green-700" : "text-gray-400"}
+            ${isActive ? "text-pink-300" : "text-gray-400"}
           `}
         >
           {item.title}
@@ -661,7 +661,7 @@ const Accordion = ({
   </div>
 </div>
       {/* ---------- Tab Content ---------- */}
-      <div className="relative min-h-[120px] overflow-hidden">
+      <div className="relative  min-h-[120px]  overflow-hidden">
         {items.map((item, index) => {
           const isOpen = openIndex === index;
 
@@ -680,7 +680,7 @@ const Accordion = ({
                 }
               `}
             >
-              <div className="text-sm text-[#717171] ">
+              <div className="text-sm px-6 text-[#717171] ">
                 {item.content}
               </div>
             </div>
