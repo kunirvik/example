@@ -104,7 +104,7 @@ const [accordionState, setAccordionState] = useState({
     pendingHover: null,
     mousePos: { x: 0, y: 0 }
   });
-
+const socialButtonsRef = useRef(null);
   // Мемоизированные значения
   const currentProduct = useMemo(() => 
     productCatalogSets[state.activeProductIndex], 
@@ -113,17 +113,26 @@ const [accordionState, setAccordionState] = useState({
 
 
 
+  // const allImages = useMemo(() => 
+  //   productCatalogSets.flatMap((p) => p.sample || []), 
+  //   []
+  // );
+
   const allImages = useMemo(() => 
-    productCatalogSets.flatMap((p) => p.sample || []), 
-    []
-  );
+  productCatalogSets.flatMap((p) => 
+    (p.sample || []).map((src, i) => ({
+      src,
+      caption: p.sampleCaptions?.[i] || p.name || ""
+    }))
+  ), []
+);
 
   // Утилиты - мемоизированы с useCallback
-  const updateUrl = useCallback((productId, viewIndex = 0) => {
+  const updateUrl = useCallback((productId) => {
     if (refs.current.urlUpdateBlocked) return;
     
     refs.current.urlUpdateBlocked = true;
-    const newUrl = `/product/sets/${productId}?view=${viewIndex}`;
+    const newUrl = `/product/sets/${productId}`;
     window.history.replaceState(null, '', newUrl);
     
     setTimeout(() => {
@@ -466,6 +475,7 @@ onComplete: async () => {
 }, [imageData, startTransitionAnimation, state.thumbsShown, showInfoAndThumbs, state.purchaseShown,  state.productionShowm]);
 
   const handleSlideChange = useCallback(async (swiper) => {
+    socialButtonsRef.current?.close();
     const newIndex = swiper.activeIndex;
     if (newIndex === state.activeProductIndex || animationState.inProgress) return;
 
@@ -561,6 +571,7 @@ onComplete: async () => {
 
 
   const handleThumbnailClick = useCallback((index) => {
+    socialButtonsRef.current?.close();
     if (animationState.inProgress || index === state.activeProductIndex || !swiperInstances.main) 
       return;
     
@@ -763,7 +774,7 @@ useEffect(() => {
       <div className="flex flex-col border-2 border-indigo-200 min-h-screen">
         <div className="z-50 flex-shrink-0">
           <SocialButtons
-          
+            ref={socialButtonsRef}
             buttonLabel="shop"
             onButtonClick={() => navigate("/catalogue")}
             buttonAnimationProps={{ whileTap: { scale: 0.85, opacity: 0.6 } }}

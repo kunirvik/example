@@ -172,13 +172,13 @@ const handleClick = async (product, e) => {
   setTimeout(() => {
     switch (product.category) {
       case "sets":
-        navigate(`/product/sets/1?view=0`, { state: { imageData } });
+        navigate(`/product/sets/1`, { state: { imageData } });
         break;
       case "ramps":
-        navigate(`/product/ramps/1?view=0`, { state: { imageData } });
+        navigate(`/product/ramps/1`, { state: { imageData } });
         break;
       case "skateparks":
-        navigate(`/product/skateparks/1?view=0`, { state: { imageData } });
+        navigate(`/product/skateparks/1`, { state: { imageData } });
         break;
       // case "diy":
       //   navigate(`/projectpage`, { state: { imageData } });

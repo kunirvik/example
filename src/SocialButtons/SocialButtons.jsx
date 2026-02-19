@@ -75,14 +75,22 @@
 // }
 
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect , forwardRef, useImperativeHandle } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Instagram, Mail, Plane, MoreVertical, X } from "lucide-react";
 
-export default function SocialButtons( ) {
+const SocialButtons = forwardRef(function SocialButtons(props, ref) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
   const mobileMenuRef = useRef(null);
+
+  
+  useImperativeHandle(ref, () => ({
+    close: () => setOpen(false)
+  }));
+
+ 
+
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -176,7 +184,7 @@ z"/></svg>,
   return (
     <>
       {/* ───────────── DESKTOP ───────────── */}
-      <div className="hidden border-2 border-indigo-200 md:flex fixed top-0 left-0 w-full h-12 bg-black items-center justify-between px-4 z-50">
+      <div className="hidden border-2 border-indigo-200 md:flex fixed top-0 left-0 w-full h-12 bg-black items-center justify-between px-6 z-50">
         <img src="/logo.png" alt="Logo" className="opacity-50 max-h-12" />
 
         <div ref={menuRef} className="flex items-center gap-2 relative">
@@ -195,7 +203,7 @@ z"/></svg>,
                     onClick={btn.onClick || (() => window.open(btn.link, "_blank"))}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-9 h-9 rounded backdrop-blur-xl bg-white/10
+                    className="w-9 h-9 cursor-pointer rounded backdrop-blur-xl bg-white/10
                                flex items-center justify-center hover:bg-white/20"
                   >
                     {btn.icon}
@@ -207,7 +215,7 @@ z"/></svg>,
 
           <button
             onClick={() => setOpen(!open)}
-            className="w-9 h-9 flex items-center justify-center rounded hover:bg-white/10 transition"
+            className="w-9 h-9 flex cursor-pointer items-center justify-center rounded hover:bg-white/10 transition"
           >
             <MoreVertical size={28} className="text-[#919191]" />
           </button>
@@ -224,7 +232,7 @@ z"/></svg>,
         {/* FAB + меню */}
         <div
           ref={mobileMenuRef}
-          className="fixed bottom-8 right-5 z-50 flex flex-col items-center gap-3"
+          className="fixed bottom-8 right-4 z-50 flex flex-col items-center gap-3"
         >
           <AnimatePresence>
             {open && (
@@ -276,7 +284,7 @@ z"/></svg>,
           <motion.button
             onClick={() => setOpen(!open)}
             whileTap={{ scale: 0.9 }}
-            style={{ width: 52, height: 52 }}
+            style={{ width: 50, height: 50 }}
             className="rounded-full bg-pink-300 border border-white/15
                        flex items-center justify-center shadow-xl overflow-hidden"
           >
@@ -289,7 +297,7 @@ z"/></svg>,
                   exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
                 >
-                  <X size={20} className="text-[#919191]" />
+                  <X size={20} className="text-black" />
                 </motion.span>
               ) : (
                 <motion.span
@@ -299,7 +307,7 @@ z"/></svg>,
                   exit={{ opacity: 0, rotate: -90, scale: 0.5 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
                 >
-                  <MoreVertical size={20} className="text-[#919191]" />
+                  <MoreVertical size={20} className="text-black" />
                 </motion.span>
               )}
             </AnimatePresence>
@@ -308,4 +316,7 @@ z"/></svg>,
       </div>
     </>
   );
-}
+}  
+
+);
+export default SocialButtons;

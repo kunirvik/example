@@ -5,6 +5,7 @@ const productCatalogSets = [ {
     altImages: ["/images/sets/box1.png", "/images/sets/box3.png"],
  sample: ["/images/sample/grindbox2.webp", "/images/sample/grindbox.webp", ],
     designer: "СкейтДизайн",
+    sampleCaptions: ["підпис 1", "підпис 2"],
     year: 2024,
      description2: "Міцний гриндбокс для відпрацювання слайдів і грайндів. Стійкий, рівний і зручний у транспортуванні — ідеальний елемент, щоб апгрейдити будь-який скейтспот.",
     description: "Пиши нам у месенджер або кидай заявку — ми зателефонуємо й усе обговоримо. Власне виробництво, ручна збірка, доставка по Україні.",
@@ -56,7 +57,7 @@ const productCatalogSets = [ {
      image: "/images/sets/quaterr215h80w125d40.png",
     altImages: ["/images/sets/quaterr215h80w125d40left.png", "/images/sets/quaterr215h80w125d40top.png"],
      sample: ["/images/sample/quater.webp",  "/images/sample/box.webp",],
-  
+   sampleCaptions: ["підпис 1", "підпис 2"],
     year: 2023,
     // description: "Комплекты для самостоятельного строительства элементов.",
         description: "пиши нам у месенджер або кидай заявку — ми зателефонуємо й усе обговоримо. Власне виробництво, ручна збірка, доставка по Україні.",
@@ -89,7 +90,7 @@ const productCatalogSets = [ {
      image: "/images/sets/quaterr215h80w125d40.png",
     altImages: ["/images/sets/quaterr215h80w125d40left.png", "/images/sets/quaterr215h80w125d40top.png"],
      sample: ["/images/sample/quater.webp",  "/images/sample/box.webp",],
-  
+   sampleCaptions: ["підпис 1", "підпис 2"],
     year: 2023,
     description: "Комплекты для самостоятельного строительства элементов.",
       description2: "квотер - неотъемлемая часть любого парка, чаще всего устанавливается по обе стороны площадки и помогает сохранять инерцию на площадке. набирать скорость или гасить её. квотера могут быть любого размера и их можно использовать для  трюков, разного размера квотера можно совмещать друг с другом - усовершенствуя площадку и открывать новые опции для катания и выполнения трюков",
