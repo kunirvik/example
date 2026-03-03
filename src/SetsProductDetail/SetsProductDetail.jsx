@@ -445,8 +445,8 @@ onComplete: async () => {
     }
     return;
   }
-
-  requestAnimationFrame(startTransitionAnimation);
+startTransitionAnimation();
+  // requestAnimationFrame(startTransitionAnimation);
 }, [imageData, startTransitionAnimation, state.thumbsShown, showInfoAndThumbs, state.purchaseShown,  state.productionShowm]);
 
   const handleSlideChange = useCallback(async (swiper) => {
@@ -863,7 +863,9 @@ useEffect(() => {
           position: "absolute",
           top: 0,
           left: 0,
-          visibility: "visible",
+          // visibility: "visible",
+ visibility: "hidden",
+
           pointerEvents: "none",
         }}
       />

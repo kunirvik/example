@@ -11,7 +11,7 @@ import Catalogue from "./Catalogue/Catalogue";
 import BlogPage from "./blog/components/BlogPage";
 import FilmGallery from "./FilmGallery";
 import GalleryPage from "./GalleryPage/GalleryPage";
-
+import BlogPostModal from "./blog/components/BlogPostModal";
 
 function App() {
  const location = useLocation();
@@ -32,7 +32,7 @@ function App() {
  <Route path="/product/ramps/:id" element={<RampsProductDetail />} /> 
  <Route path="/product/skateparks/:id" element={<SkateparksProductDetail />} />
  <Route path="/product/diy/:id" element={<DiyProductDetail />} />
-       
+       <Route path="/blog/post/:id" element={<BlogPostModal />} />
 
 
     
