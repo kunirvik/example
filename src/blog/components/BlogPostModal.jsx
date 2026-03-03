@@ -1,0 +1,328 @@
+
+
+import { useParams, useNavigate } from "react-router-dom"
+import { useEffect, useState, useCallback } from "react"
+
+// ─── URL helpers ────────────────────────────────────────────────────────────
+
+function getYoutubeID(url) {
+  const match = url?.match(/(?:\?v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/)
+  return match ? match[1] : null
+}
+
+function getRumbleID(url) {
+  if (!url) return null
+  const match = url.match(/rumble\.com\/(?:embed\/)?(v[a-z0-9]+)/i)
+  return match ? match[1] : null
+}
+
+/**
+ * Detects the media type of a URL.
+ * Returns: "youtube" | "rumble" | "mp4" | "image" | null
+ */
+function detectType(url) {
+  if (!url) return null
+  if (getYoutubeID(url)) return "youtube"
+  if (getRumbleID(url)) return "rumble"
+  if (/\.(mp4|webm|ogg)(\?|$)/i.test(url)) return "mp4"
+  if (/\.(jpe?g|png|gif|webp|avif|svg)(\?|$)/i.test(url)) return "image"
+  return null
+}
+
+/**
+ * Builds a flat ordered list of media items from a post object.
+ * Priority: cover → photos[] → video (mp4) → url → videos[]
+ */
+function buildMediaList(post) {
+  const items = []
+
+  const push = (url, forcedType) => {
+    const type = forcedType ?? detectType(url)
+    if (type) items.push({ url, type })
+  }
+
+  if (post.cover)            push(post.cover, "image")
+  post.photos?.forEach(u => push(u, "image"))
+  if (post.video)            push(post.video, "mp4")
+  if (post.url)              push(post.url)
+  post.videos?.forEach(u => push(u))
+
+  return items
+}
+
+// ─── Thumbnail strip item ────────────────────────────────────────────────────
+
+function Thumb({ item, active, onClick, index }) {
+  const base =
+    `relative w-16 h-12 rounded-lg overflow-hidden cursor-pointer flex-shrink-0
+     border-2 transition-all duration-200 select-none
+     ${active
+       ? "border-white shadow-[0_0_0_3px_rgba(255,255,255,0.4)] scale-105"
+       : "border-transparent opacity-50 hover:opacity-90 hover:scale-105"}`
+
+  if (item.type === "image") {
+    return (
+      <button onClick={onClick} className={base} aria-label={`Media ${index + 1}`}>
+        <img src={item.url} alt="" className="w-full h-full object-cover" />
+      </button>
+    )
+  }
+
+  if (item.type === "youtube") {
+    const ytId = getYoutubeID(item.url)
+    return (
+      <button onClick={onClick} className={base} aria-label={`YouTube video ${index + 1}`}>
+        <img
+          src={`https://img.youtube.com/vi/${ytId}/mqdefault.jpg`}
+          alt=""
+          className="w-full h-full object-cover"
+        />
+        {/* play badge */}
+        <span className="absolute inset-0 flex items-center justify-center">
+          <span className="bg-red-600 rounded-full w-6 h-6 flex items-center justify-center text-white text-[10px]">▶</span>
+        </span>
+      </button>
+    )
+  }
+
+  if (item.type === "rumble") {
+    return (
+      <button
+        onClick={onClick}
+        className={`${base} bg-[#85c742] flex flex-col items-center justify-center gap-0.5`}
+        aria-label={`Rumble video ${index + 1}`}
+      >
+        <span className="text-white text-[10px] font-black leading-none">RUMBLE</span>
+        <span className="text-white text-[8px] leading-none">▶</span>
+      </button>
+    )
+  }
+
+  if (item.type === "mp4") {
+    return (
+      <button
+        onClick={onClick}
+        className={`${base} bg-gray-800 flex items-center justify-center`}
+        aria-label={`Video ${index + 1}`}
+      >
+        <span className="text-white text-xl">▶</span>
+      </button>
+    )
+  }
+
+  return null
+}
+
+// ─── Main media renderer ─────────────────────────────────────────────────────
+
+function MediaViewer({ item }) {
+  if (!item) return null
+
+  if (item.type === "image") {
+    return (
+      <img
+        src={item.url}
+        alt=""
+        className="w-full h-full object-contain"
+      />
+    )
+  }
+
+  if (item.type === "mp4") {
+    return (
+      <video key={item.url} controls className="w-full h-full object-contain">
+        <source src={item.url} type="video/mp4" />
+      </video>
+    )
+  }
+
+  if (item.type === "youtube") {
+    return (
+      <iframe
+        key={item.url}
+        className="w-full h-full"
+        src={`https://www.youtube.com/embed/${getYoutubeID(item.url)}`}
+        title="YouTube video"
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    )
+  }
+
+  if (item.type === "rumble") {
+    return (
+      <iframe
+        key={item.url}
+        className="w-full h-full"
+        src={`https://rumble.com/embed/${getRumbleID(item.url)}/`}
+        title="Rumble video"
+        frameBorder="0"
+        allowFullScreen
+      />
+    )
+  }
+
+  return null
+}
+
+// ─── Modal ───────────────────────────────────────────────────────────────────
+
+export default function BlogPostModal() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const API_URL = import.meta.env.VITE_API_URL
+
+  const [post, setPost]           = useState(null)
+  const [show, setShow]           = useState(false)
+  const [mediaIndex, setMediaIndex] = useState(0)
+
+  // Lock body scroll
+  useEffect(() => {
+    document.body.style.overflow = "hidden"
+    return () => { document.body.style.overflow = "auto" }
+  }, [])
+
+  // Fade-in on mount
+  useEffect(() => { setTimeout(() => setShow(true), 10) }, [])
+
+  // Load post
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch(`${API_URL}/api/blog/${id}`)
+        if (!res.ok) throw new Error("Post not found")
+        setPost(await res.json())
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    load()
+  }, [id])
+
+  // Keyboard navigation
+  const handleKey = useCallback((e) => {
+    if (!mediaList.length) return
+    if (e.key === "ArrowRight") setMediaIndex(i => (i + 1) % mediaList.length)
+    if (e.key === "ArrowLeft")  setMediaIndex(i => (i - 1 + mediaList.length) % mediaList.length)
+    if (e.key === "Escape") closeModal()
+  }, [post])
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKey)
+    return () => window.removeEventListener("keydown", handleKey)
+  }, [handleKey])
+
+  function closeModal() {
+    setShow(false)
+    setTimeout(() => navigate(-1), 200)
+  }
+
+  if (!post) return null
+
+  const mediaList  = buildMediaList(post)
+  const hasMany    = mediaList.length > 1
+  const current    = mediaList[mediaIndex] ?? null
+
+  const prev = () => setMediaIndex(i => (i - 1 + mediaList.length) % mediaList.length)
+  const next = () => setMediaIndex(i => (i + 1) % mediaList.length)
+
+  return (
+    <div
+      onClick={closeModal}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4
+        transition-all duration-300 backdrop-blur-lg
+        ${show ? "bg-black/40 opacity-100" : "bg-black/0 opacity-0"}`}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+ className={`bg-white w-full max-w-6xl h-full max-h-[95vh]
+  border-4 border-black
+  flex flex-col md:flex-row relative overflow-hidden
+  transition-all duration-300 ease-out
+  ${show ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+
+      >
+<button
+  onClick={closeModal}
+  className="absolute top-4 right-4 z-20
+    font-futura font-black text-lg
+    border-2 border-black bg-white w-10 h-10
+    flex items-center justify-center
+    hover:bg-black hover:text-white transition"
+>
+  ✕
+</button>
+
+
+        {/* ── LEFT: media panel ── */}
+        <div className="md:w-1/2 w-full bg-black flex flex-col min-h-0">
+
+          {/* Main viewer */}
+          <div className="relative flex-1 flex items-center justify-center overflow-hidden">
+            <MediaViewer item={current} />
+
+            {/* Prev / Next arrows */}
+            {hasMany && (
+              <>
+                <button
+                  onClick={prev}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10
+                    bg-black/50 hover:bg-black/80 text-white rounded-full
+                    w-10 h-10 text-2xl flex items-center justify-center
+                    transition-all hover:scale-110"
+                  aria-label="Previous"
+                >
+                  ‹
+                </button>
+                <button
+                  onClick={next}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10
+                    bg-black/50 hover:bg-black/80 text-white rounded-full
+                    w-10 h-10 text-2xl flex items-center justify-center
+                    transition-all hover:scale-110"
+                  aria-label="Next"
+                >
+                  ›
+                </button>
+
+                {/* Counter badge */}
+                <span className="absolute bottom-3 right-3 bg-black/60 text-white
+                  text-xs px-2 py-0.5 rounded-full">
+                  {mediaIndex + 1} / {mediaList.length}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Thumbnail strip */}
+          {hasMany && (
+            <div className="flex gap-2 px-4 py-3 bg-black/90 overflow-x-auto
+              scrollbar-thin scrollbar-thumb-white/20 flex-shrink-0">
+              {mediaList.map((item, i) => (
+                <Thumb
+                  key={i}
+                  item={item}
+                  index={i}
+                  active={i === mediaIndex}
+                  onClick={() => setMediaIndex(i)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── RIGHT: text panel ── */}
+        <div className="md:w-1/2 w-full flex flex-col p-8 overflow-y-auto">
+          <h1 className="text-3xl font-bold mb-2">{post.title}</h1>
+          <time className="text-sm text-gray-500 mb-6">{post.date}</time>
+          <div
+            className="prose max-w-none mb-6"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
+        </div>
+
+      </div>
+    </div>
+  )
+}

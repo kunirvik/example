@@ -9,7 +9,8 @@ import './App.css'
 import SetsProductDetail from "./SetsProductDetail/SetsProductDetail";
 import Catalogue from "./Catalogue/Catalogue";
 import BlogPage from "./blog/components/BlogPage";
-
+import FilmGallery from "./FilmGallery";
+import GalleryPage from "./GalleryPage/GalleryPage";
 
 
 function App() {
@@ -22,7 +23,11 @@ function App() {
         <Route path="/" element={<MenuPage />} />
          <Route path="/blog" element={<BlogPage />} />
         <Route  path="/catalogue" element={<Catalogue />} />
-    
+    {/* <Route path="/gallery" element={<GalleryPage />} /> */}
+       {/* <Route path="/gallery" element={<FilmGallery />} />
+     */}
+
+     <Route path="/gallery/:type/:id" element={<GalleryPage />} />
        <Route path="/product/sets/:id" element={<SetsProductDetail />} />
  <Route path="/product/ramps/:id" element={<RampsProductDetail />} /> 
  <Route path="/product/skateparks/:id" element={<SkateparksProductDetail />} />

@@ -332,6 +332,9 @@ return (
         {products.find(p => p.id === tooltip.productId)?.name}</h2>
       </div>
     )}
+
+
+    <div className="text-[300px] text-white font-futura font-bold">𒅆𒂍𒉪</div>
   </>
 );
 } 

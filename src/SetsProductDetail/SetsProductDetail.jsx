@@ -12,7 +12,7 @@ import "swiper/css";
 import "swiper/css/pagination"; 
 // import { ChevronDown, ChevronUp } from "lucide-react";
 import Accordion from "../Accordion/Accordion";
-
+import { useOpenGallery } from "../useOpenGallery";
 import ContactButton from "../ContactButtons/ContactButton";
 import Footer from "../Footer/Footer"
 // Константы
@@ -57,7 +57,7 @@ const isDesktop = () => window.innerWidth >= 1024; // или другой пор
 
   }));
 
-const galleryInHistory = useRef(false); 
+// const galleryInHistory = useRef(false); 
 
 
 const [accordionState, setAccordionState] = useState({
@@ -118,14 +118,14 @@ const socialButtonsRef = useRef(null);
   //   []
   // );
 
-  const allImages = useMemo(() => 
-  productCatalogSets.flatMap((p) => 
-    (p.sample || []).map((src, i) => ({
-      src,
-      caption: p.sampleCaptions?.[i] || p.name || ""
-    }))
-  ), []
-);
+//   const allImages = useMemo(() => 
+//   productCatalogSets.flatMap((p) => 
+//     (p.sample || []).map((src, i) => ({
+//       src,
+//       caption: p.sampleCaptions?.[i] || p.name || ""
+//     }))
+//   ), []
+// );
 
   // Утилиты - мемоизированы с useCallback
   const updateUrl = useCallback((productId) => {
@@ -149,61 +149,87 @@ const socialButtonsRef = useRef(null);
   const updateState = useCallback((updates) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
+const handleLoadingComplete = useCallback(() => {
+  setLoadingState((prev) => ({ ...prev, isCompleted: true }));
+  setTimeout(() => {
+    setLoadingState((prev) => ({ ...prev, isLoading: false }));
 
-  // Обработка завершения loading screen
-  const handleLoadingComplete = useCallback(() => {
-    setLoadingState(prev => ({ ...prev, isCompleted: true }));
+    requestAnimationFrame(() => {
+      const targets = [
+        refs.current.container,
+        refs.current.info,
+        refs.current.purchaceAccordion,
+        refs.current.productionAccordion,
+      ].filter(Boolean);
+
+      gsap.set(targets, { opacity: 0, y: 20 });
+
+      targets.forEach((el, i) => {
+        gsap.to(el, {
+          opacity: 1,
+          y: 0,
+          duration: ANIMATION_CONFIG.DURATION,
+          ease: ANIMATION_CONFIG.EASE,
+          delay: i * 0.1,
+        });
+      });
+    });
+  }, 200);
+}, []);
+  // // Обработка завершения loading screen
+  // const handleLoadingComplete = useCallback(() => {
+  //   setLoadingState(prev => ({ ...prev, isCompleted: true }));
     
-    setTimeout(() => {
-      setLoadingState(prev => ({ ...prev, isLoading: false }));
+  //   setTimeout(() => {
+  //     setLoadingState(prev => ({ ...prev, isLoading: false }));
       
-      // Анимируем появление контента
-      if (refs.current.container && refs.current.info && refs.current.purchaceAccordion && refs.current.productionAccordion) {
-        gsap.fromTo(refs.current.container, 
-          { opacity: 0, y: 50 },
-          { 
-            opacity: 1, 
-            y: 0, 
-            duration: ANIMATION_CONFIG.DURATION,
-            ease: ANIMATION_CONFIG.EASE 
-          }
-        );
+  //     // Анимируем появление контента
+  //     if (refs.current.container && refs.current.info && refs.current.purchaceAccordion && refs.current.productionAccordion) {
+  //       gsap.fromTo(refs.current.container, 
+  //         { opacity: 0, y: 50 },
+  //         { 
+  //           opacity: 1, 
+  //           y: 0, 
+  //           duration: ANIMATION_CONFIG.DURATION,
+  //           ease: ANIMATION_CONFIG.EASE 
+  //         }
+  //       );
         
-        gsap.fromTo(refs.current.info,
-          { opacity: 0, y: 50 },
-          { 
-            opacity: 1, 
-            y: 0, 
-            duration: ANIMATION_CONFIG.DURATION,
-            ease: ANIMATION_CONFIG.EASE,
-            delay: 0.2
-          }
-        );
+  //       gsap.fromTo(refs.current.info,
+  //         { opacity: 0, y: 50 },
+  //         { 
+  //           opacity: 1, 
+  //           y: 0, 
+  //           duration: ANIMATION_CONFIG.DURATION,
+  //           ease: ANIMATION_CONFIG.EASE,
+  //           delay: 0.2
+  //         }
+  //       );
 
-          gsap.fromTo(refs.current.purchaceAccordion,
-          { opacity: 0, y: 50 },
-          { 
-            opacity: 1, 
-            y: 0, 
-            duration: ANIMATION_CONFIG.DURATION,
-            ease: ANIMATION_CONFIG.EASE,
-            delay: 0.3
-          }
-        );
-   gsap.fromTo(refs.current.productionAccordion,
-          { opacity: 0, y: 50 },
-          { 
-            opacity: 1, 
-            y: 0, 
-            duration: ANIMATION_CONFIG.DURATION,
-            ease: ANIMATION_CONFIG.EASE,
-            delay: 0.4
-          }
-        );
+  //         gsap.fromTo(refs.current.purchaceAccordion,
+  //         { opacity: 0, y: 50 },
+  //         { 
+  //           opacity: 1, 
+  //           y: 0, 
+  //           duration: ANIMATION_CONFIG.DURATION,
+  //           ease: ANIMATION_CONFIG.EASE,
+  //           delay: 0.3
+  //         }
+  //       );
+  //  gsap.fromTo(refs.current.productionAccordion,
+  //         { opacity: 0, y: 50 },
+  //         { 
+  //           opacity: 1, 
+  //           y: 0, 
+  //           duration: ANIMATION_CONFIG.DURATION,
+  //           ease: ANIMATION_CONFIG.EASE,
+  //           delay: 0.4
+  //         }
+  //       );
 
-      }
-    }, 200);
-  }, []);
+  //     }
+  //   }, 200);
+  // }, []);
 
   // Анимации
   const animateInfo = useCallback((direction = 'in') => {
@@ -283,62 +309,9 @@ const socialButtonsRef = useRef(null);
     return !!el && refs.current.swiperContainer.contains(el);
   }, []);
 
-//  const openGallery = useCallback(() => {
-//     // Пересчитываем индекс каждый раз при открытии галереи
-//     const productStartIndex = productCatalogSets
-//       .slice(0, state.activeProductIndex)
-//       .reduce((acc, p) => acc + (p.sample?.length || 0), 0);
 
-//     const startIndex = currentProduct.sample?.length ? productStartIndex : 0;
+ const openGallery = useOpenGallery();
 
-//     updateState({
-//       galleryStartIndex: startIndex,
-//       isGalleryOpen: true
-//     });
-//   }, [state.activeProductIndex, currentProduct, updateState]);
- 
-
-//     const closeGallery = useCallback(() => {
-//   updateState({ isGalleryOpen: false });
-// }, []);
-  
-
-const openGallery = useCallback(() => {
-  const productStartIndex = productCatalogSets
-    .slice(0, state.activeProductIndex)
-    .reduce((acc, p) => acc + (p.sample?.length || 0), 0);
-
-  const startIndex = currentProduct.sample?.length ? productStartIndex : 0;
-
-  updateState({ galleryStartIndex: startIndex, isGalleryOpen: true });
-
-  // Пушим только если ещё нет в истории
-  if (!galleryInHistory.current) {
-    galleryInHistory.current = true;
-    window.history.pushState({ galleryOpen: true }, '');
-  }
-}, [state.activeProductIndex, currentProduct, updateState]);
-
-
-const closeGallery = useCallback(() => {
-  if (galleryInHistory.current) {
-    galleryInHistory.current = false;
-    window.history.back(); // popstate сам закроет
-  } else {
-    updateState({ isGalleryOpen: false });
-  }
-}, [updateState]);
-
-
-useEffect(() => {
-  const handlePopState = () => {
-    galleryInHistory.current = false;
-    updateState({ isGalleryOpen: false });
-  };
-
-  window.addEventListener('popstate', handlePopState);
-  return () => window.removeEventListener('popstate', handlePopState);
-}, [updateState]); // 👈 без state.isGalleryOpen в зависимостях
 
 
 const showInfoAndThumbs = useCallback(() => {
@@ -441,6 +414,8 @@ const showInfoAndThumbs = useCallback(() => {
 onComplete: async () => {
   gsap.set(swiperEl, { visibility: 'visible', opacity: 1 });
   gsap.set(transitionEl, { visibility: 'hidden', opacity: 0 });
+
+      window.history.replaceState({}, '', window.location.pathname);
 
   updateAnimationState({ complete: true });
 
@@ -631,38 +606,30 @@ const handleTouchEnd = useCallback(() => {
   }, [shouldShowLoading, handleLoadingComplete]);
 
 const handleAccordionToggle = (type) => (index) => {
-  setAccordionState(prev => {
-     
+  if (type === 'virobi') {
+    // openGallery();
+ // при клике:
+  openGallery("sets", state.activeProductIndex);
+    setAccordionState(prev => ({ ...prev, virobi: null }));
+    return;
+  }
 
-    if (type === 'virobi') {
-      // При открытии вироби - просто открываем галерею, НЕ трогая другие аккордеоны
-      if (prev.virobi !== index) {
-        openGallery(state.activeProductIndex);
-         return {
-        ...prev,
-        virobi: null, // всегда закрыто
-      };
-      }
-      return {
-        virobi: prev.virobi === index ? null : index,
-        purchase: prev.purchase,  // оставляем как было
-        product: prev.product      // оставляем как было
-      };
-    } else if (type === 'purchase') {
-      return {
-        virobi: prev.virobi,      // оставляем как было
-        purchase: prev.purchase === index ? null : index,
-        product: null             // закрываем описание
-      };
-    } else {
-      return {
-        virobi: prev.virobi,      // оставляем как было
-        purchase: null,           // закрываем замовити
-        product: prev.product === index ? null : index
-      };
-    }
-  });
-}; 
+  if (type === 'purchase') {
+    setAccordionState(prev => ({
+      virobi: prev.virobi,
+      purchase: prev.purchase === index ? null : index,
+      product: null,
+    }));
+    return;
+  }
+
+  // type === 'product'
+  setAccordionState(prev => ({
+    virobi: prev.virobi,
+    purchase: null,
+    product: prev.product === index ? null : index,
+  }));
+};
 
 useEffect(() => {
   if (!isTouchDevice) {
@@ -845,7 +812,9 @@ useEffect(() => {
     > 
       <Accordion
         items={[
-          { title: "вироби" },
+          { title: "вироби" 
+            
+          },
         ]}
         controlled={true}
         openIndex={accordionState.virobi}
@@ -1017,24 +986,12 @@ useEffect(() => {
   </div>  
    </div>   
     
-  {/* <div className="hidden  lg:block z-20000 text-right mb-10"> */}
-  {/* <p className="font-futura text-[#717171] font-medium text-[35px] tracking-[-1px]">Не чекай ідеального парку — створи його сам. Фігура за фігурою. Трюк за трюком.
 
-    
-  </p> */}
-{/* </div> */}
   <Footer></Footer> 
   
    </div>  
 
-        {/* Fullscreen gallery */}
-        <FullscreenGallery
-          images={allImages}
-          startIndex={state.galleryStartIndex}
-          isOpen={state.isGalleryOpen}
-          onClose={closeGallery}
-        />
-{/* <div className="w-full h-[500px] text-white text-[110px] font-futura font-bold tracking-[-1px]">parkramps spot 057 ziggurat</div> */}
+   
     </>
   );
 }

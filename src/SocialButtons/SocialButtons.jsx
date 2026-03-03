@@ -78,12 +78,14 @@
 import { useState, useRef, useEffect , forwardRef, useImperativeHandle } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Instagram, Mail, Plane, MoreVertical, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const SocialButtons = forwardRef(function SocialButtons(props, ref) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
   const mobileMenuRef = useRef(null);
-
+const navigate = useNavigate(); 
   
   useImperativeHandle(ref, () => ({
     close: () => setOpen(false)
@@ -171,7 +173,8 @@ M213.517288,197.929581
 	C330.955292,178.820648 301.998779,193.961777 265.967438,197.238861 
 	C248.867523,198.794098 231.667007,197.774887 213.517288,197.929581 
 z"/></svg>,
-      link: "https://instagram.com/parkramps/",
+      // link: "https://instagram.com/parkramps/",
+      onClick: () => navigate("/catalogue"),
       label: "Ramp",
     },
     {
@@ -185,7 +188,7 @@ z"/></svg>,
     <>
       {/* ───────────── DESKTOP ───────────── */}
       <div className="hidden border-2 border-indigo-200 md:flex fixed top-0 left-0 w-full h-12 bg-black items-center justify-between px-6 z-50">
-        <img src="/logo.png" alt="Logo" className="opacity-50 max-h-12" />
+       <Link to="/catalogue"> <img src="/logo.png" alt="Logo" className="opacity-50 max-h-12" /></Link>
 
         <div ref={menuRef} className="flex items-center gap-2 relative">
           <AnimatePresence>

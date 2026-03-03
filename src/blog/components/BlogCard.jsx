@@ -1,14 +1,61 @@
+
+import { Link, useLocation } from "react-router-dom"
+
+function getYoutubeID(url) {
+  const regExp = /(?:\?v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/
+  const match = url.match(regExp)
+  return match ? match[1] : null
+}
+ 
 export default function BlogCard({ post }) {
+  const location = useLocation()
   return (
-    <article className={`blog-card blog-card--${post.type}`}>
-      <span className="blog-badge text-[#757575]">
-        {post.type === "company" ? "НАШ ПРОЕКТ" : "НОВОСТЬ"}
-      </span>
+    <article className="blog-card bg-white rounded-md shadow-md overflow-hidden mb-4">
+        <Link
+        to={`/blog/post/${post.id}`}
+        state={{ background: location }}
+      >
+      {/* Превью / Фото */}
+      {post.cover && (
+        <img 
+          src={post.cover} 
+          alt={post.title} 
+          className="w-full object-cover rounded-t-md"
+        />
+      )}
 
-      <h2>{post.title}</h2>
-      <time>{post.date}</time>
+      {/* Видео YouTube */}
+      {post.type === "video" && post.url && (
+        <iframe
+          className="w-full h-60 object-cover"
+          src={`https://www.youtube.com/embed/${getYoutubeID(post.url)}`}
+          title={post.title}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+      )}
 
-      {post.excerpt && <p>{post.excerpt}</p>}
+      {/* Видео Cloudinary */}
+      {post.video && (
+        <video controls className="w-full h-full object-contain">
+          <source src={post.video} type="video/mp4" />
+          Ваш браузер не поддерживает видео.
+        </video>
+      )}
+
+      {/* Контент */}
+      <div className="p-3">
+        <h2 className="font-bold text-lg mb-1">{post.title}</h2>
+        <time className="text-sm text-gray-500 block mb-2">{post.date}</time>
+        {post.excerpt && <p className="text-gray-700 text-sm">{post.excerpt}</p>}
+      </div>
+      
+      </Link>
     </article>
   )
 }
+
+
+
+

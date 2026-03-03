@@ -136,3 +136,13 @@ body{
   opacity: 0;
   transition: opacity 0.3s ease;
 }
+
+/* hide scrollbar but keep scroll */
+.scrollbar-none {
+  -ms-overflow-style: none;  /* IE & Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari */
+}
