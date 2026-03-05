@@ -454,10 +454,10 @@ function MainView({ slide, index, total }) {
           muted
           loop
           playsInline
-          className="w-auto h-full object-cover"
+          className="w-auto h-full object-contain"
         />
       ) : (
-        <img src={slide.src} className="w-auto h-full object-cover" />
+        <img src={slide.src} className="w-auto h-full object-contain" />
       )}
 
       {/* виньетка */}
@@ -466,7 +466,7 @@ function MainView({ slide, index, total }) {
       {/* подпись */}
       {slide.caption && (
         <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-black/70 to-transparent">
-          <p className="text-white/90 italic tracking-wide text-sm md:text-base">
+          <p className="text-white/90 futura text-bold">
             {slide.caption}
           </p>
         </div>
