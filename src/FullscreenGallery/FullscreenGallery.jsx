@@ -21,30 +21,359 @@
 // ║  Готово! Highlight и счётчик появятся автоматически.                 ║
 // ╚══════════════════════════════════════════════════════════════════════╝
 
+// import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+
+// // ─── 1. КАТЕГОРИИ ────────────────────────────────────────────────────────────
+// // Добавляй сколько угодно: ключ (значение slide.cat) → отображаемое имя
+// export const CAT_LABEL = {
+//   sets:       "Sets",
+//   ramps:      "Ramps",
+//   skateparks: "Skateparks",
+//   video:      "Video",       // тип slide.type === "video" ловится отдельно ниже
+//   photo:      "Photo",
+//   street:     "Street",
+//   general:    "General",
+//   // ← добавляй свои сюда
+// };
+
+// // Вспомогательная: достать категорию из слайда
+// // Если у slide.type === "video" и нет явного cat → будет "video"
+// function getCat(slide) {
+//   if (slide.cat) return slide.cat;
+//   if (slide.type === "video") return "video";
+//   return "general";
+// }
+
+// // ─── 2. СТИЛИ (inject once) ───────────────────────────────────────────────────
+// const STYLE_ID = "pyoshi-kf";
+// if (typeof document !== "undefined" && !document.getElementById(STYLE_ID)) {
+//   const s = document.createElement("style");
+//   s.id = STYLE_ID;
+//   s.textContent = `
+//     @keyframes pySlideIn {
+//       from { opacity: 0; transform: translateX(-24px); }
+//       to   { opacity: 1; transform: translateX(0); }
+//     }
+//     .py-card { animation: pySlideIn 0.55s cubic-bezier(0.16,1,0.3,1) both; }
+
+//     /* скрыть scrollbar, но оставить скролл */
+//     .py-hscroll::-webkit-scrollbar { display: none; }
+//     .py-hscroll { -ms-overflow-style: none; scrollbar-width: none; }
+//   `;
+//   document.head.appendChild(s);
+// }
+
+// // ─── КОНСТАНТЫ ────────────────────────────────────────────────────────────────
+// const COL_W         = 148;  // ширина колонки, px
+// const COL_GAP       = 4;    // отступ между колонками, px
+// const ITEMS_PER_COL = 6;    // фото в колонке (влияет на высоту колонки)
+// const PARALLAX_MAX  = 20;   // максимальное смещение по Y при скролле, px
+
+// // ─── КОМПОНЕНТ ────────────────────────────────────────────────────────────────
+// export default function FullscreenGallery({ slides = [], onClose, onSelectSlide }) {
+//   const [hoveredCat, setHoveredCat] = useState(null);
+//   const scrollRef   = useRef(null);   // горизонтальный контейнер
+//   const colRefs     = useRef([]);     // refs на каждую колонку для параллакса
+
+//   // ── ESC закрывает оверлей ──
+//   useEffect(() => {
+//     const fn = (e) => { if (e.key === "Escape") onClose(); };
+//     window.addEventListener("keydown", fn);
+//     return () => window.removeEventListener("keydown", fn);
+//   }, [onClose]);
+
+//   // ── Блокируем скролл body ──
+//   useEffect(() => {
+//     document.body.style.overflow = "hidden";
+//     return () => { document.body.style.overflow = ""; };
+//   }, []);
+
+//   // ── Кол-во фото по категориям ──
+//   const catCounts = useMemo(() =>
+//     slides.reduce((acc, s) => {
+//       const c = getCat(s);
+//       acc[c] = (acc[c] || 0) + 1;
+//       return acc;
+//     }, {}),
+//   [slides]);
+
+//   // ── Разбиваем слайды по колонкам ──
+//   // Каждая колонка = массив { slide, globalIndex }
+//   const columns = useMemo(() => {
+//     const cols = [];
+//     for (let i = 0; i < slides.length; i += ITEMS_PER_COL) {
+//       cols.push(
+//         slides.slice(i, i + ITEMS_PER_COL).map((slide, j) => ({
+//           slide,
+//           globalIndex: i + j,
+//         }))
+//       );
+//     }
+//     return cols;
+//   }, [slides]);
+
+//   // ─── 3. ПАРАЛЛАКС НА ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ ────────────────────────────────
+//   // Первая колонка едет ВНИЗ (+Y), последняя ВВЕРХ (-Y), ±20px максимум.
+//   // Промежуточные колонки — линейная интерполяция между +20 и -20.
+//   const handleScroll = useCallback(() => {
+//     const el = scrollRef.current;
+//     if (!el || columns.length < 2) return;
+
+//     const maxScroll = el.scrollWidth - el.clientWidth;
+//     if (maxScroll <= 0) return;
+
+//     const progress = el.scrollLeft / maxScroll; // 0 → 1
+
+//     colRefs.current.forEach((col, i) => {
+//       if (!col) return;
+//       const t  = i / (columns.length - 1);           // 0 → 1
+//       const y  = (1 - 2 * t) * PARALLAX_MAX * progress; // +20 → 0 → -20
+//       col.style.transform = `translateY(${y.toFixed(2)}px)`;
+//     });
+//   }, [columns.length]);
+
+//   useEffect(() => {
+//     const el = scrollRef.current;
+//     if (!el) return;
+//     el.addEventListener("scroll", handleScroll, { passive: true });
+//     return () => el.removeEventListener("scroll", handleScroll);
+//   }, [handleScroll]);
+
+//   // ── Клик на фото ──
+//   const handleSelect = useCallback((idx) => {
+//     onSelectSlide(idx);
+//     onClose();
+//   }, [onSelectSlide, onClose]);
+
+//   const hoveredLabel = hoveredCat ? (CAT_LABEL[hoveredCat] ?? hoveredCat) : null;
+
+//   return (
+//     <div className="fixed inset-0 z-[200] bg-[#e8e3db] flex flex-col overflow-hidden">
+
+//       {/* ── ШАПКА ── */}
+//       <header className="flex-none flex items-center justify-between px-6 py-3 z-20 select-none">
+//         <span
+//           className="text-neutral-800 tracking-tight font-bold"
+//           style={{ fontFamily: "'Georgia', serif", fontSize: "clamp(1rem,2vw,1.4rem)" }}
+//         >
+//           All Photos
+//         </span>
+
+//         <div className="flex items-center gap-5 flex-wrap justify-end">
+//           {/* ── КНОПКИ КАТЕГОРИЙ ──────────────────────────────────────────────
+//             Сюда автоматически попадают все cat, которые есть в slides.
+//             Чтобы добавить "Tricks" — просто добавь slide.cat = "tricks"
+//             и CAT_LABEL["tricks"] = "Tricks" выше.
+//           ─────────────────────────────────────────────────────────────────── */}
+//           {Object.entries(catCounts).map(([cat, n]) => (
+//             <button
+//               key={cat}
+//               onMouseEnter={() => setHoveredCat(cat)}
+//               onMouseLeave={() => setHoveredCat(null)}
+//               onClick={() => setHoveredCat(v => v === cat ? null : cat)}
+//               className={`text-[11px] tracking-[0.15em] uppercase transition-colors duration-200 ${
+//                 hoveredCat === cat
+//                   ? "text-neutral-900"
+//                   : "text-neutral-400 hover:text-neutral-600"
+//               }`}
+//             >
+//               {CAT_LABEL[cat] ?? cat}
+//               <span className="ml-1 text-neutral-300 font-light">({n})</span>
+//             </button>
+//           ))}
+
+//           {/* Закрыть */}
+//           <button
+//             onClick={onClose}
+//             className="ml-2 w-8 h-8 rounded-full bg-black/8 hover:bg-black/15 flex items-center justify-center transition-colors"
+//             aria-label="Close"
+//           >
+//             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+//               stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+//               <line x1="18" y1="6"  x2="6"  y2="18"/>
+//               <line x1="6"  y1="6"  x2="18" y2="18"/>
+//             </svg>
+//           </button>
+//         </div>
+//       </header>
+
+//       {/* ─── ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ ─────────────────────────────────────────── */}
+//       {/* py-hscroll скрывает нативный скроллбар */}
+//       <div
+//         ref={scrollRef}
+//         className="py-hscroll flex-1 overflow-x-auto overflow-y-hidden"
+//       >
+//         {/*
+//           Внутренний flex-контейнер.
+//           Высота = 100% контейнера (вся высота экрана минус хедер).
+//           Каждая колонка — flex-col, фото идут сверху вниз.
+//           Ширина рассчитывается так, что колонки НЕ переносятся.
+//         */}
+//         <div
+//           className="flex items-start h-full gap-[4px] px-1.5 pb-20"
+//           style={{
+//             minWidth: `${columns.length * (COL_W + COL_GAP)}px`,
+//           }}
+//         >
+//           {columns.map((col, colIdx) => (
+//             <div
+//               key={colIdx}
+//               ref={el => (colRefs.current[colIdx] = el)}
+//               className="flex flex-col gap-1 will-change-transform"
+//               style={{
+//                 width:     `${COL_W}px`,
+//                 flexShrink: 0,
+//                 // Начальное смещение: первая колонка чуть ниже, последняя чуть выше
+//                 // Это создаёт эффект "волны" даже без скролла
+//                 // transform: colIdx % 2 === 0 ? "translateY(0px)" : "translateY(12px)",
+//                 // ↑ раскомментируй если хочешь шахматное смещение изначально
+//               }}
+//             >
+//               {col.map(({ slide, globalIndex }) => {
+//                 const cat     = getCat(slide);
+//                 const isFaded = hoveredCat !== null && cat !== hoveredCat;
+
+//                 return (
+//                   <div
+//                     key={globalIndex}
+//                     className="py-card overflow-hidden cursor-pointer relative group flex-shrink-0"
+//                     style={{
+//                       animationDelay: `${Math.min(globalIndex * 0.02, 0.7)}s`,
+//                     }}
+//                     // ── Наведение на фото → подсвечиваем категорию ──
+//                     onMouseEnter={() => setHoveredCat(cat)}
+//                     onMouseLeave={() => setHoveredCat(null)}
+//                     onClick={() => handleSelect(globalIndex)}
+//                   >
+//                     {/* ── ВИДЕО ── */}
+//                     {slide.type === "video" ? (
+//                       <div
+//                         className={`
+//                           w-full aspect-video bg-neutral-600 flex flex-col items-center
+//                           justify-center gap-1 transition-all duration-500
+//                           ${isFaded ? "opacity-[0.11] saturate-0 brightness-[1.7]" : "opacity-100"}
+//                         `}
+//                       >
+//                         {/* превью-кадр если есть poster */}
+//                         {slide.poster && (
+//                           <img
+//                             src={slide.poster}
+//                             className="absolute inset-0 w-full h-full object-cover"
+//                             loading="lazy"
+//                           />
+//                         )}
+//                         <div className="relative z-10 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+//                           <svg width="12" height="12" viewBox="0 0 10 10" fill="white">
+//                             <polygon points="2,1 9,5 2,9"/>
+//                           </svg>
+//                         </div>
+//                       </div>
+//                     ) : (
+//                       /* ── ФОТО ── */
+//                       <img
+//                         src={slide.src}
+//                         alt={slide.caption || cat}
+//                         loading="lazy"
+//                         className={`
+//                           w-full h-auto block
+//                           transition-all duration-500 ease-out
+//                           group-hover:scale-[1.04]
+//                           ${isFaded
+//                             ? "opacity-[0.11] saturate-0 brightness-[1.7]"
+//                             : "opacity-100 saturate-100 brightness-100"
+//                           }
+//                         `}
+//                       />
+//                     )}
+//                   </div>
+//                 );
+//               })}
+//             </div>
+//           ))}
+//         </div>
+//       </div>
+
+//       {/* ── БОЛЬШОЙ ЛЕЙБЛ СНИЗУ ── */}
+//       <div
+//         className="fixed bottom-0 left-0 right-0 text-center pointer-events-none pb-4 z-30"
+//         style={{
+//           opacity:    hoveredCat ? 1 : 0,
+//           transform:  hoveredCat ? "translateY(0)" : "translateY(12px)",
+//           transition: "opacity 0.32s ease, transform 0.32s ease",
+//         }}
+//       >
+//         <div
+//           className="font-bold text-neutral-900 leading-none tracking-tight"
+//           style={{
+//             fontFamily: "'Georgia', serif",
+//             fontSize:   "clamp(2.2rem, 7vw, 6.5rem)",
+//           }}
+//         >
+//           {hoveredLabel}
+//           {hoveredCat && (
+//             <span
+//               className="text-neutral-400 align-super"
+//               style={{ fontSize: "clamp(0.65rem, 1.2vw, 1rem)", marginLeft: "0.3em", fontFamily: "sans-serif", fontWeight: 300 }}
+//             >
+//               ({catCounts[hoveredCat] ?? 0})
+//             </span>
+//           )}
+//         </div>
+//         <p className="text-[10px] tracking-[0.22em] uppercase text-neutral-400 mt-0.5">
+//           / All Photos
+//         </p>
+//       </div>
+
+//       {/* ── Подсказка о скролле (исчезает через 2с) ── */}
+//       <ScrollHint />
+//     </div>
+//   );
+// }
+
+// // ─── ПОДСКАЗКА О ГОРИЗОНТАЛЬНОМ СКРОЛЛЕ ──────────────────────────────────────
+// function ScrollHint() {
+//   const [visible, setVisible] = useState(true);
+//   useEffect(() => {
+//     const t = setTimeout(() => setVisible(false), 2200);
+//     return () => clearTimeout(t);
+//   }, []);
+
+//   return (
+//     <div
+//       className="fixed bottom-6 right-6 flex items-center gap-2 text-[10px] tracking-widest uppercase text-neutral-400 pointer-events-none z-40"
+//       style={{
+//         opacity:    visible ? 1 : 0,
+//         transition: "opacity 0.6s ease",
+//       }}
+//     >
+//       <svg width="20" height="10" viewBox="0 0 20 10" fill="none"
+//         stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+//         <line x1="0" y1="5" x2="16" y2="5"/>
+//         <polyline points="12,1 17,5 12,9"/>
+//       </svg>
+//       scroll
+//     </div>
+//   );
+// }
+ 
+
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 
-// ─── 1. КАТЕГОРИИ ────────────────────────────────────────────────────────────
-// Добавляй сколько угодно: ключ (значение slide.cat) → отображаемое имя
+// ─── КАТЕГОРИИ ────────────────────────────────────────────────────────────────
+// Только три активных категории. Добавляй новые сюда при необходимости.
 export const CAT_LABEL = {
-  sets:       "Sets",
-  ramps:      "Ramps",
-  skateparks: "Skateparks",
-  video:      "Video",       // тип slide.type === "video" ловится отдельно ниже
-  photo:      "Photo",
-  street:     "Street",
-  general:    "General",
-  // ← добавляй свои сюда
+  video:    "Video",
+  stroyka:  "Стройка",   // slide.cat = "stroyka"
+  figures:  "Фигуры",    // slide.cat = "figures"
 };
 
-// Вспомогательная: достать категорию из слайда
-// Если у slide.type === "video" и нет явного cat → будет "video"
 function getCat(slide) {
   if (slide.cat) return slide.cat;
   if (slide.type === "video") return "video";
-  return "general";
+  return null; // слайды без категории не фильтруются, просто нет метки
 }
 
-// ─── 2. СТИЛИ (inject once) ───────────────────────────────────────────────────
+// ─── Инжект стилей (один раз) ─────────────────────────────────────────────────
 const STYLE_ID = "pyoshi-kf";
 if (typeof document !== "undefined" && !document.getElementById(STYLE_ID)) {
   const s = document.createElement("style");
@@ -55,50 +384,49 @@ if (typeof document !== "undefined" && !document.getElementById(STYLE_ID)) {
       to   { opacity: 1; transform: translateX(0); }
     }
     .py-card { animation: pySlideIn 0.55s cubic-bezier(0.16,1,0.3,1) both; }
-
-    /* скрыть scrollbar, но оставить скролл */
     .py-hscroll::-webkit-scrollbar { display: none; }
     .py-hscroll { -ms-overflow-style: none; scrollbar-width: none; }
   `;
   document.head.appendChild(s);
 }
 
-// ─── КОНСТАНТЫ ────────────────────────────────────────────────────────────────
-const COL_W         = 148;  // ширина колонки, px
-const COL_GAP       = 4;    // отступ между колонками, px
-const ITEMS_PER_COL = 6;    // фото в колонке (влияет на высоту колонки)
-const PARALLAX_MAX  = 20;   // максимальное смещение по Y при скролле, px
+// ─── Константы ────────────────────────────────────────────────────────────────
+const COL_W         = 148;
+const COL_GAP       = 4;
+const ITEMS_PER_COL = 6;
+const PARALLAX_MAX  = 20;
 
-// ─── КОМПОНЕНТ ────────────────────────────────────────────────────────────────
+// ─── Компонент ────────────────────────────────────────────────────────────────
 export default function FullscreenGallery({ slides = [], onClose, onSelectSlide }) {
   const [hoveredCat, setHoveredCat] = useState(null);
-  const scrollRef   = useRef(null);   // горизонтальный контейнер
-  const colRefs     = useRef([]);     // refs на каждую колонку для параллакса
+  const scrollRef = useRef(null);
+  const colRefs   = useRef([]);
 
-  // ── ESC закрывает оверлей ──
+  // ESC
   useEffect(() => {
     const fn = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
 
-  // ── Блокируем скролл body ──
+  // блок скролла body
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, []);
 
-  // ── Кол-во фото по категориям ──
+  // кол-во слайдов по категориям (только известные из CAT_LABEL)
   const catCounts = useMemo(() =>
     slides.reduce((acc, s) => {
       const c = getCat(s);
-      acc[c] = (acc[c] || 0) + 1;
+      if (c && CAT_LABEL[c]) {
+        acc[c] = (acc[c] || 0) + 1;
+      }
       return acc;
     }, {}),
   [slides]);
 
-  // ── Разбиваем слайды по колонкам ──
-  // Каждая колонка = массив { slide, globalIndex }
+  // разбивка по колонкам
   const columns = useMemo(() => {
     const cols = [];
     for (let i = 0; i < slides.length; i += ITEMS_PER_COL) {
@@ -112,22 +440,17 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
     return cols;
   }, [slides]);
 
-  // ─── 3. ПАРАЛЛАКС НА ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ ────────────────────────────────
-  // Первая колонка едет ВНИЗ (+Y), последняя ВВЕРХ (-Y), ±20px максимум.
-  // Промежуточные колонки — линейная интерполяция между +20 и -20.
+  // параллакс при горизонтальном скролле
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el || columns.length < 2) return;
-
     const maxScroll = el.scrollWidth - el.clientWidth;
     if (maxScroll <= 0) return;
-
-    const progress = el.scrollLeft / maxScroll; // 0 → 1
-
+    const progress = el.scrollLeft / maxScroll;
     colRefs.current.forEach((col, i) => {
       if (!col) return;
-      const t  = i / (columns.length - 1);           // 0 → 1
-      const y  = (1 - 2 * t) * PARALLAX_MAX * progress; // +20 → 0 → -20
+      const t = i / (columns.length - 1);
+      const y = (1 - 2 * t) * PARALLAX_MAX * progress;
       col.style.transform = `translateY(${y.toFixed(2)}px)`;
     });
   }, [columns.length]);
@@ -139,7 +462,6 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
     return () => el.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-  // ── Клик на фото ──
   const handleSelect = useCallback((idx) => {
     onSelectSlide(idx);
     onClose();
@@ -150,7 +472,7 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
   return (
     <div className="fixed inset-0 z-[200] bg-[#e8e3db] flex flex-col overflow-hidden">
 
-      {/* ── ШАПКА ── */}
+      {/* ── Шапка ── */}
       <header className="flex-none flex items-center justify-between px-6 py-3 z-20 select-none">
         <span
           className="text-neutral-800 tracking-tight font-bold"
@@ -160,11 +482,7 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
         </span>
 
         <div className="flex items-center gap-5 flex-wrap justify-end">
-          {/* ── КНОПКИ КАТЕГОРИЙ ──────────────────────────────────────────────
-            Сюда автоматически попадают все cat, которые есть в slides.
-            Чтобы добавить "Tricks" — просто добавь slide.cat = "tricks"
-            и CAT_LABEL["tricks"] = "Tricks" выше.
-          ─────────────────────────────────────────────────────────────────── */}
+          {/* кнопки категорий — только те, у которых есть слайды */}
           {Object.entries(catCounts).map(([cat, n]) => (
             <button
               key={cat}
@@ -182,7 +500,7 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
             </button>
           ))}
 
-          {/* Закрыть */}
+          {/* закрыть */}
           <button
             onClick={onClose}
             className="ml-2 w-8 h-8 rounded-full bg-black/8 hover:bg-black/15 flex items-center justify-center transition-colors"
@@ -197,64 +515,44 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
         </div>
       </header>
 
-      {/* ─── ГОРИЗОНТАЛЬНЫЙ СКРОЛЛ ─────────────────────────────────────────── */}
-      {/* py-hscroll скрывает нативный скроллбар */}
+      {/* ── Горизонтальный скролл ── */}
       <div
         ref={scrollRef}
         className="py-hscroll flex-1 overflow-x-auto overflow-y-hidden"
       >
-        {/*
-          Внутренний flex-контейнер.
-          Высота = 100% контейнера (вся высота экрана минус хедер).
-          Каждая колонка — flex-col, фото идут сверху вниз.
-          Ширина рассчитывается так, что колонки НЕ переносятся.
-        */}
         <div
           className="flex items-start h-full gap-[4px] px-1.5 pb-20"
-          style={{
-            minWidth: `${columns.length * (COL_W + COL_GAP)}px`,
-          }}
+          style={{ minWidth: `${columns.length * (COL_W + COL_GAP)}px` }}
         >
           {columns.map((col, colIdx) => (
             <div
               key={colIdx}
               ref={el => (colRefs.current[colIdx] = el)}
               className="flex flex-col gap-1 will-change-transform"
-              style={{
-                width:     `${COL_W}px`,
-                flexShrink: 0,
-                // Начальное смещение: первая колонка чуть ниже, последняя чуть выше
-                // Это создаёт эффект "волны" даже без скролла
-                // transform: colIdx % 2 === 0 ? "translateY(0px)" : "translateY(12px)",
-                // ↑ раскомментируй если хочешь шахматное смещение изначально
-              }}
+              style={{ width: COL_W, flexShrink: 0 }}
             >
               {col.map(({ slide, globalIndex }) => {
                 const cat     = getCat(slide);
+                // затухание: только если hoveredCat задан И категория слайда ≠ hoveredCat
                 const isFaded = hoveredCat !== null && cat !== hoveredCat;
 
                 return (
                   <div
                     key={globalIndex}
                     className="py-card overflow-hidden cursor-pointer relative group flex-shrink-0"
-                    style={{
-                      animationDelay: `${Math.min(globalIndex * 0.02, 0.7)}s`,
-                    }}
-                    // ── Наведение на фото → подсвечиваем категорию ──
-                    onMouseEnter={() => setHoveredCat(cat)}
+                    style={{ animationDelay: `${Math.min(globalIndex * 0.02, 0.7)}s` }}
+                    onMouseEnter={() => cat && setHoveredCat(cat)}
                     onMouseLeave={() => setHoveredCat(null)}
                     onClick={() => handleSelect(globalIndex)}
                   >
-                    {/* ── ВИДЕО ── */}
                     {slide.type === "video" ? (
                       <div
                         className={`
                           w-full aspect-video bg-neutral-600 flex flex-col items-center
-                          justify-center gap-1 transition-all duration-500
+                          justify-center gap-1 transition-all duration-500 relative
                           ${isFaded ? "opacity-[0.11] saturate-0 brightness-[1.7]" : "opacity-100"}
                         `}
                       >
-                        {/* превью-кадр если есть poster */}
                         {slide.poster && (
                           <img
                             src={slide.poster}
@@ -269,10 +567,9 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
                         </div>
                       </div>
                     ) : (
-                      /* ── ФОТО ── */
                       <img
                         src={slide.src}
-                        alt={slide.caption || cat}
+                        alt={slide.caption || cat || ""}
                         loading="lazy"
                         className={`
                           w-full h-auto block
@@ -285,6 +582,13 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
                         `}
                       />
                     )}
+
+                    {/* маленький лейбл категории на карточке */}
+                    {cat && CAT_LABEL[cat] && (
+                      <div className="absolute bottom-1 left-1 text-[9px] tracking-widest uppercase text-white/0 group-hover:text-white/70 transition-colors bg-black/40 px-1.5 py-0.5 rounded-sm pointer-events-none">
+                        {CAT_LABEL[cat]}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -293,7 +597,7 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
         </div>
       </div>
 
-      {/* ── БОЛЬШОЙ ЛЕЙБЛ СНИЗУ ── */}
+      {/* ── Большой лейбл снизу ── */}
       <div
         className="fixed bottom-0 left-0 right-0 text-center pointer-events-none pb-4 z-30"
         style={{
@@ -324,13 +628,11 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
         </p>
       </div>
 
-      {/* ── Подсказка о скролле (исчезает через 2с) ── */}
       <ScrollHint />
     </div>
   );
 }
 
-// ─── ПОДСКАЗКА О ГОРИЗОНТАЛЬНОМ СКРОЛЛЕ ──────────────────────────────────────
 function ScrollHint() {
   const [visible, setVisible] = useState(true);
   useEffect(() => {
@@ -341,10 +643,7 @@ function ScrollHint() {
   return (
     <div
       className="fixed bottom-6 right-6 flex items-center gap-2 text-[10px] tracking-widest uppercase text-neutral-400 pointer-events-none z-40"
-      style={{
-        opacity:    visible ? 1 : 0,
-        transition: "opacity 0.6s ease",
-      }}
+      style={{ opacity: visible ? 1 : 0, transition: "opacity 0.6s ease" }}
     >
       <svg width="20" height="10" viewBox="0 0 20 10" fill="none"
         stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -355,7 +654,6 @@ function ScrollHint() {
     </div>
   );
 }
- 
 // import React, { useRef, useEffect, useMemo, useState } from "react";
 // import { Canvas, useFrame } from "@react-three/fiber";
 // import { Html } from "@react-three/drei";
