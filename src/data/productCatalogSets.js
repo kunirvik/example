@@ -171,10 +171,12 @@ const productCatalogSets = [
     id: 3,
     name: "jumpbox",
     image: "/images/sets/box360/160yolobox1.png",
-    altImages: [
-      "/images/sets/box360/160yolobox2.webp",
-      "/images/sets/box360/160yolobox3.webp",
-    ],
+    altImages: [ "/images/sets/box360/160yolobox2.webp", "/images/sets/box360/160yolobox3.webp", "/images/sets/box360/160yolobox4.webp", 
+          "/images/sets/box360/160yolobox5.webp","/images/sets/box360/160yolobox6.webp","/images/sets/box360/160yolobox7.webp",
+          "/images/sets/box360/160yolobox8.webp","/images/sets/box360/160yolobox9.webp","/images/sets/box360/160yolobox10.webp",
+           "/images/sets/box360/160yolobox11.webp", "/images/sets/box360/160yolobox12.webp", "/images/sets/box360/160yolobox13.webp", "/images/sets/box360/160yolobox14.webp",
+          "/images/sets/box360/160yolobox15.webp", "/images/sets/box360/160yolobox16.webp", "/images/sets/box360/160yolobox17.webp", "/images/sets/box360/160yolobox18.webp", ],
+
     sample: [
       { type: "image", src: "/images/sample/jumpbox.jpg" },
       { type: "image", src: "/images/sample/jumpbox1.jpg" },

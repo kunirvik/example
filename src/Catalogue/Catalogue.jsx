@@ -334,7 +334,7 @@ return (
     )}
 
 
-    <div className="text-[300px] text-white font-futura font-bold">𒅆𒂍𒉪</div>
+   
   </>
 );
 } 
