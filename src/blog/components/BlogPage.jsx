@@ -66,18 +66,16 @@ import BlogFeed from "./BlogFeed"
 import SocialButtons from "../../SocialButtons/SocialButtons"
 
 const PAGE_SIZE = 9
-
 const TAGS = ["all", "live", "construction", "parkramps", "bmx", "skate"]
 
 export default function BlogPage() {
   const API_URL = import.meta.env.VITE_API_URL
 
-  const [posts, setPosts]       = useState([])
-  const [visible, setVisible]   = useState(PAGE_SIZE)
-  const [error, setError]       = useState(null)
-  const [loading, setLoading]   = useState(true)
+  const [posts, setPosts]         = useState([])
+  const [visible, setVisible]     = useState(PAGE_SIZE)
+  const [error, setError]         = useState(null)
+  const [loading, setLoading]     = useState(true)
   const [activeTag, setActiveTag] = useState("all")
-  const [view, setView]         = useState("grid") // "grid" | "list"
 
   const loaderRef = useRef(null)
 
@@ -125,12 +123,14 @@ export default function BlogPage() {
   )
   if (error) return <p className="p-8 text-red-700">{error}</p>
 
-  const today = new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric"
+  })
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=UnifrakturMaguntia&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
 
         @keyframes fadeSlideUp {
           from { opacity: 0; transform: translateY(20px); }
@@ -165,51 +165,20 @@ export default function BlogPage() {
         {/* ── Secondary rule ── */}
         <div className="newspaper-rule mb-4" />
 
-        {/* ── Toolbar: tags + view toggle ── */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2">
-            {TAGS.map(tag => (
-              <button
-                key={tag}
-                onClick={() => setActiveTag(tag)}
-                className={`px-3 py-1 text-[11px] font-black tracking-widest uppercase border transition-colors cursor-pointer
-                  ${activeTag === tag
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-black border-black/30 hover:border-black"}`}
-              >
-                {tag === "all" ? "ALL" : `#${tag}`}
-              </button>
-            ))}
-          </div>
-
-          {/* View toggle */}
-          <div className="flex border border-black/20 overflow-hidden">
+        {/* ── Tags ── */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {TAGS.map(tag => (
             <button
-              onClick={() => setView("grid")}
-              title="Grid"
-              className={`px-3 py-1.5 text-sm transition-colors cursor-pointer
-                ${view === "grid" ? "bg-black text-white" : "bg-white text-black hover:bg-black/5"}`}
+              key={tag}
+              onClick={() => setActiveTag(tag)}
+              className={`px-3 py-1 text-[11px] font-black tracking-widest uppercase border transition-colors cursor-pointer
+                ${activeTag === tag
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-black border-black/30 hover:border-black"}`}
             >
-              {/* Grid icon */}
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <rect x="0" y="0" width="6" height="6"/><rect x="10" y="0" width="6" height="6"/>
-                <rect x="0" y="10" width="6" height="6"/><rect x="10" y="10" width="6" height="6"/>
-              </svg>
+              {tag === "all" ? "ALL" : `#${tag}`}
             </button>
-            <button
-              onClick={() => setView("list")}
-              title="List"
-              className={`px-3 py-1.5 text-sm border-l border-black/20 transition-colors cursor-pointer
-                ${view === "list" ? "bg-black text-white" : "bg-white text-black hover:bg-black/5"}`}
-            >
-              {/* List icon */}
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <rect x="0" y="1" width="16" height="2"/><rect x="0" y="7" width="16" height="2"/>
-                <rect x="0" y="13" width="16" height="2"/>
-              </svg>
-            </button>
-          </div>
+          ))}
         </div>
 
         {/* ── Count line ── */}
@@ -221,7 +190,7 @@ export default function BlogPage() {
         </div>
 
         {/* ── Feed ── */}
-        <BlogFeed posts={visiblePosts} view={view} />
+        <BlogFeed posts={visiblePosts} />
 
         {/* ── Infinite scroll sentinel ── */}
         <div ref={loaderRef} className="h-12 flex items-center justify-center mt-4">
@@ -235,7 +204,6 @@ export default function BlogPage() {
     </>
   )
 }
-
 
 
 // import { useEffect, useState, useRef, useCallback } from "react"
