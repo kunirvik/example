@@ -56,38 +56,6 @@ export default function BlogFeed({ posts, view = "grid" }) {
 // import BlogCard from "./BlogCard"
 // import Masonry from "react-masonry-css"
 
-// export default function BlogFeed({ posts, view = "grid" }) {
-//   const breakpointColumnsObj = {
-//     default: 3,
-//     1024: 2,
-//     640: 1,
-//   }
-
-//   if (view === "list") {
-//     return (
-//       <div className="max-w-2xl">
-//         {posts.map((post, index) => (
-//           <BlogCard key={post.id} post={post} index={index} view="list" />
-//         ))}
-//       </div>
-//     )
-//   }
-
-//   return (
-//     <Masonry
-//       breakpointCols={breakpointColumnsObj}
-//       className="my-masonry-grid"
-//       columnClassName="my-masonry-grid_column"
-//     >
-//       {posts.map((post, index) => (
-//         <BlogCard key={post.id} post={post} index={index} view="grid" />
-//       ))}
-//     </Masonry>
-//   )
-// }
-// import BlogCard from "./BlogCard"
-// import Masonry from "react-masonry-css"
-
 // export default function BlogFeed({ posts }) {
 //   const breakpointColumnsObj = {
 //     default: 3,

@@ -327,18 +327,19 @@
 //   )
 // }
 
+
 import { useParams, useNavigate } from "react-router-dom"
 import { useEffect, useState, useCallback } from "react"
-import { usePostsContext } from "./BlogPage"
 
-// ─── URL helpers ──────────────────────────────────────────────────────────────
+// ─── URL helpers ─────────────────────────────────────────────────────────────
 
 function getYoutubeID(url) {
   const match = url?.match(/(?:\?v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/)
   return match ? match[1] : null
 }
 function getRumbleID(url) {
-  const match = url?.match(/rumble\.com\/(?:embed\/)?(v[a-z0-9]+)/i)
+  if (!url) return null
+  const match = url.match(/rumble\.com\/(?:embed\/)?(v[a-z0-9]+)/i)
   return match ? match[1] : null
 }
 function detectType(url) {
@@ -355,43 +356,50 @@ function buildMediaList(post) {
     const type = forcedType ?? detectType(url)
     if (type) items.push({ url, type })
   }
-  if (post.cover)           push(post.cover, "image")
+  if (post.cover)            push(post.cover, "image")
   post.photos?.forEach(u => push(u, "image"))
-  if (post.video)           push(post.video, "mp4")
-  if (post.url)             push(post.url)
+  if (post.video)            push(post.video, "mp4")
+  if (post.url)              push(post.url)
   post.videos?.forEach(u => push(u))
   return items
 }
 
-// ─── Thumbnail ────────────────────────────────────────────────────────────────
+// ─── Thumbnail ───────────────────────────────────────────────────────────────
 
-function Thumb({ item, active, onClick }) {
-  const base = `relative w-14 h-10 overflow-hidden cursor-pointer flex-shrink-0 border-2 transition-all duration-200
+function Thumb({ item, active, onClick, index }) {
+  const base = `relative w-14 h-10 overflow-hidden cursor-pointer flex-shrink-0
+    border-2 transition-all duration-200 select-none
     ${active ? "border-white scale-105" : "border-transparent opacity-40 hover:opacity-80 hover:scale-105"}`
 
-  if (item.type === "image") return (
-    <button onClick={onClick} className={base}>
-      <img src={item.url} alt="" className="w-full h-full object-cover" />
-    </button>
-  )
-  if (item.type === "youtube") return (
-    <button onClick={onClick} className={base}>
-      <img src={`https://img.youtube.com/vi/${getYoutubeID(item.url)}/mqdefault.jpg`}
-        alt="" className="w-full h-full object-cover" />
-      <span className="absolute inset-0 flex items-center justify-center">
-        <span className="bg-red-600 w-5 h-5 flex items-center justify-center text-white text-[9px]">▶</span>
-      </span>
-    </button>
-  )
-  if (item.type === "rumble") return (
-    <button onClick={onClick} className={`${base} bg-[#85c742] flex flex-col items-center justify-center`}>
-      <span className="text-white text-[7px] font-black">RUMBLE</span>
-      <span className="text-white text-[7px]">▶</span>
-    </button>
-  )
+  if (item.type === "image") {
+    return (
+      <button onClick={onClick} className={base}>
+        <img src={item.url} alt="" className="w-full h-full object-cover" />
+      </button>
+    )
+  }
+  if (item.type === "youtube") {
+    return (
+      <button onClick={onClick} className={base}>
+        <img src={`https://img.youtube.com/vi/${getYoutubeID(item.url)}/mqdefault.jpg`}
+          alt="" className="w-full h-full object-cover" />
+        <span className="absolute inset-0 flex items-center justify-center">
+          <span className="bg-red-600 w-5 h-5 flex items-center justify-center text-white text-[9px]">▶</span>
+        </span>
+      </button>
+    )
+  }
+  if (item.type === "rumble") {
+    return (
+      <button onClick={onClick} className={`${base} bg-[#85c742] flex flex-col items-center justify-center`}>
+        <span className="text-white text-[8px] font-black">RUMBLE</span>
+        <span className="text-white text-[7px]">▶</span>
+      </button>
+    )
+  }
   return (
     <button onClick={onClick} className={`${base} bg-black flex items-center justify-center`}>
-      <span className="text-white text-base">▶</span>
+      <span className="text-white text-lg">▶</span>
     </button>
   )
 }
@@ -400,31 +408,23 @@ function Thumb({ item, active, onClick }) {
 
 function MediaViewer({ item }) {
   if (!item) return null
-  if (item.type === "image") return (
-    <img src={item.url} alt="" className="w-full h-auto max-h-full object-contain" />
-  )
+  if (item.type === "image") return <img src={item.url} alt="" className="w-full h-full object-contain" />
   if (item.type === "mp4") return (
-    <video key={item.url} controls className="w-full h-auto max-h-full object-contain">
+    <video key={item.url} controls className="w-full h-full object-contain">
       <source src={item.url} type="video/mp4" />
     </video>
   )
   if (item.type === "youtube") return (
-    <div className="w-full" style={{ paddingBottom: "56.25%", position: "relative" }}>
-      <iframe key={item.url}
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-        src={`https://www.youtube.com/embed/${getYoutubeID(item.url)}`}
-        title="YouTube" frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen />
-    </div>
+    <iframe key={item.url} className="w-full h-full"
+      src={`https://www.youtube.com/embed/${getYoutubeID(item.url)}`}
+      title="YouTube" frameBorder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen />
   )
   if (item.type === "rumble") return (
-    <div className="w-full" style={{ paddingBottom: "56.25%", position: "relative" }}>
-      <iframe key={item.url}
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-        src={`https://rumble.com/embed/${getRumbleID(item.url)}/`}
-        title="Rumble" frameBorder="0" allowFullScreen />
-    </div>
+    <iframe key={item.url} className="w-full h-full"
+      src={`https://rumble.com/embed/${getRumbleID(item.url)}/`}
+      title="Rumble" frameBorder="0" allowFullScreen />
   )
   return null
 }
@@ -432,20 +432,13 @@ function MediaViewer({ item }) {
 // ─── Modal ────────────────────────────────────────────────────────────────────
 
 export default function BlogPostModal() {
-  const { id }    = useParams()
-  const navigate  = useNavigate()
-  const API_URL   = import.meta.env.VITE_API_URL
+  const { id }     = useParams()
+  const navigate   = useNavigate()
+  const API_URL    = import.meta.env.VITE_API_URL
 
-  const allPosts  = usePostsContext()   // sorted list from BlogPage context
-
-  const [post, setPost]           = useState(null)
-  const [show, setShow]           = useState(false)
+  const [post, setPost]         = useState(null)
+  const [show, setShow]         = useState(false)
   const [mediaIndex, setMediaIndex] = useState(0)
-
-  // Find neighbours in the full sorted list
-  const postIndex  = allPosts.findIndex(p => p.id === id)
-  const prevPost   = postIndex > 0 ? allPosts[postIndex - 1] : null
-  const nextPost   = postIndex >= 0 && postIndex < allPosts.length - 1 ? allPosts[postIndex + 1] : null
 
   useEffect(() => {
     document.body.style.overflow = "hidden"
@@ -455,7 +448,6 @@ export default function BlogPostModal() {
   useEffect(() => { setTimeout(() => setShow(true), 10) }, [])
 
   useEffect(() => {
-    setMediaIndex(0)
     fetch(`${API_URL}/api/blog/${id}`)
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(setPost)
@@ -463,22 +455,13 @@ export default function BlogPostModal() {
   }, [id])
 
   const mediaList = post ? buildMediaList(post) : []
-  const hasMany   = mediaList.length > 1
-  const current   = mediaList[mediaIndex] ?? null
-
-  const goTo = useCallback((targetId) => {
-    navigate(`/blog/post/${targetId}`, { replace: true })
-  }, [navigate])
 
   const handleKey = useCallback((e) => {
-    if (e.key === "Escape") return closeModal()
-    // Media navigation (only when no post nav possible)
-    if (e.key === "ArrowUp"   && mediaList.length > 1) setMediaIndex(i => (i - 1 + mediaList.length) % mediaList.length)
-    if (e.key === "ArrowDown" && mediaList.length > 1) setMediaIndex(i => (i + 1) % mediaList.length)
-    // Post navigation
-    if (e.key === "ArrowLeft"  && prevPost) goTo(prevPost.id)
-    if (e.key === "ArrowRight" && nextPost) goTo(nextPost.id)
-  }, [mediaList.length, prevPost, nextPost])
+    if (!mediaList.length) return
+    if (e.key === "ArrowRight") setMediaIndex(i => (i + 1) % mediaList.length)
+    if (e.key === "ArrowLeft")  setMediaIndex(i => (i - 1 + mediaList.length) % mediaList.length)
+    if (e.key === "Escape")     closeModal()
+  }, [mediaList.length])
 
   useEffect(() => {
     window.addEventListener("keydown", handleKey)
@@ -490,83 +473,65 @@ export default function BlogPostModal() {
     setTimeout(() => navigate(-1), 220)
   }
 
+  if (!post) return null
+
+  const hasMany = mediaList.length > 1
+  const current = mediaList[mediaIndex] ?? null
+  const prev = () => setMediaIndex(i => (i - 1 + mediaList.length) % mediaList.length)
+  const next = () => setMediaIndex(i => (i + 1) % mediaList.length)
+
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
-        .modal-prose p  { margin-bottom: 1em; }
-        .modal-prose a  { text-decoration: underline; }
-        .modal-prose h2 { font-family: 'Playfair Display', serif; font-weight: 700; margin: 1.2em 0 0.4em; }
+        .modal-prose p { margin-bottom: 1em; }
+        .modal-prose a { text-decoration: underline; }
       `}</style>
 
-      {/* ── Backdrop — blurred blog behind ── */}
+      {/* Backdrop */}
       <div
         onClick={closeModal}
         className={`fixed inset-0 z-50 flex items-center justify-center p-4
-          transition-all duration-300
-          ${show ? "opacity-100" : "opacity-0"}`}
-        style={{ backdropFilter: "blur(12px)", backgroundColor: "rgba(248,245,239,0.55)" }}
+          transition-all duration-300 backdrop-blur-sm
+          ${show ? "bg-black/60 opacity-100" : "bg-black/0 opacity-0"}`}
       >
-        {/* ── Post navigation arrows (outside modal card) ── */}
-        {prevPost && (
-          <button
-            onClick={e => { e.stopPropagation(); goTo(prevPost.id) }}
-            title={prevPost.title}
-            className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-20
-              bg-white border-2 border-black w-10 h-10 md:w-12 md:h-12 flex items-center justify-center
-              text-2xl font-black hover:bg-black hover:text-white transition-colors shadow-lg"
-          >
-            ‹
-          </button>
-        )}
-        {nextPost && (
-          <button
-            onClick={e => { e.stopPropagation(); goTo(nextPost.id) }}
-            title={nextPost.title}
-            className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-20
-              bg-white border-2 border-black w-10 h-10 md:w-12 md:h-12 flex items-center justify-center
-              text-2xl font-black hover:bg-black hover:text-white transition-colors shadow-lg"
-          >
-            ›
-          </button>
-        )}
-
-        {/* ── Modal card ── */}
         <div
           onClick={e => e.stopPropagation()}
-          className={`bg-[#f8f5ef] w-full max-w-5xl max-h-[92vh] flex flex-col md:flex-row
-            relative overflow-hidden border-4 border-black shadow-2xl
+          className={`bg-[#f8f5ef] w-full max-w-6xl max-h-[95vh] flex flex-col md:flex-row
+            relative overflow-hidden border-4 border-black
             transition-all duration-300 ease-out
             ${show ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
         >
+
           {/* Close */}
-          <button onClick={closeModal}
+          <button
+            onClick={closeModal}
             className="absolute top-0 right-0 z-20 w-10 h-10 bg-black text-white
-              font-black text-base flex items-center justify-center hover:bg-red-600 transition-colors">
+              font-black text-base flex items-center justify-center
+              hover:bg-red-600 transition-colors"
+          >
             ✕
           </button>
 
-          {/* ── LEFT: media panel ── */}
+          {/* ── LEFT: media ── */}
           {mediaList.length > 0 && (
             <div className="md:w-1/2 w-full bg-black flex flex-col min-h-0 flex-shrink-0">
-              {/* Main media — natural height, scrollable if tall */}
-              <div className="relative flex-1 overflow-y-auto flex flex-col items-center justify-start">
-                <div className="w-full">
-                  <MediaViewer item={current} />
-                </div>
+              <div className="relative flex-1 flex items-center justify-center overflow-hidden min-h-[220px]">
+                <MediaViewer item={current} />
 
-                {/* Media prev/next (↑↓ or buttons) */}
                 {hasMany && (
                   <>
-                    <button onClick={() => setMediaIndex(i => (i - 1 + mediaList.length) % mediaList.length)}
-                      className="absolute left-2 top-4 z-10 bg-black/60 hover:bg-black text-white
-                        w-8 h-8 flex items-center justify-center text-xl transition-all">
-                      ↑
+                    <button onClick={prev}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 z-10
+                        bg-black/60 hover:bg-black text-white w-9 h-9 flex items-center justify-center
+                        text-2xl transition-all hover:scale-110">
+                      ‹
                     </button>
-                    <button onClick={() => setMediaIndex(i => (i + 1) % mediaList.length)}
-                      className="absolute right-2 top-4 z-10 bg-black/60 hover:bg-black text-white
-                        w-8 h-8 flex items-center justify-center text-xl transition-all">
-                      ↓
+                    <button onClick={next}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 z-10
+                        bg-black/60 hover:bg-black text-white w-9 h-9 flex items-center justify-center
+                        text-2xl transition-all hover:scale-110">
+                      ›
                     </button>
                     <span className="absolute bottom-3 right-3 bg-black/70 text-white text-[10px] px-2 py-0.5 font-mono tracking-widest">
                       {mediaIndex + 1} / {mediaList.length}
@@ -575,33 +540,36 @@ export default function BlogPostModal() {
                 )}
               </div>
 
-              {/* Thumbnail strip */}
               {hasMany && (
                 <div className="flex gap-2 px-3 py-2 bg-black/90 overflow-x-auto flex-shrink-0">
                   {mediaList.map((item, i) => (
-                    <Thumb key={i} item={item} active={i === mediaIndex} onClick={() => setMediaIndex(i)} />
+                    <Thumb key={i} item={item} index={i} active={i === mediaIndex} onClick={() => setMediaIndex(i)} />
                   ))}
                 </div>
               )}
             </div>
           )}
 
-          {/* ── RIGHT: text panel ── */}
-          <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+          {/* ── RIGHT: text ── */}
+          <div className="flex-1 flex flex-col overflow-y-auto">
 
-            {/* Header */}
-            <div className="px-7 pt-8 pb-5 border-b-2 border-black flex-shrink-0">
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <time className="font-mono text-[10px] tracking-widest uppercase text-black/40">{post?.date}</time>
-                {post?.tags?.map(t => (
-                  <span key={t} className="font-black text-[10px] tracking-widest uppercase text-black/50 border-l border-black/20 pl-2">#{t}</span>
+            {/* Newspaper header */}
+            <div className="px-8 pt-10 pb-5 border-b-2 border-black">
+              <div className="flex items-center gap-3 mb-3">
+                <time className="font-mono text-[10px] tracking-widest uppercase text-black/45">{post.date}</time>
+                {post.tags?.map(t => (
+                  <span key={t} className="font-black text-[10px] tracking-widest uppercase text-black/50 border-l border-black/25 pl-3">#{t}</span>
                 ))}
               </div>
+
+              {/* Rule above title */}
               <div className="w-full border-t border-black/20 mb-3" />
-              <h1 className="font-['Playfair_Display'] font-black text-2xl md:text-3xl leading-tight">
-                {post?.title}
+
+              <h1 className="font-['Playfair_Display'] font-black text-3xl leading-tight">
+                {post.title}
               </h1>
-              {post?.excerpt && (
+
+              {post.excerpt && (
                 <p className="font-['EB_Garamond'] italic text-base text-black/60 mt-2 leading-relaxed">
                   {post.excerpt}
                 </p>
@@ -609,31 +577,29 @@ export default function BlogPostModal() {
             </div>
 
             {/* Body */}
-            <div className="px-7 py-5 flex-1 overflow-y-auto">
-              {post?.content ? (
+            <div className="px-8 py-6 flex-1">
+              {post.content ? (
                 <div
-                  className="modal-prose font-['EB_Garamond'] text-[15px] leading-relaxed text-black/80"
+                  className="modal-prose font-['EB_Garamond'] text-[15px] leading-relaxed text-black/80 columns-1"
                   dangerouslySetInnerHTML={{ __html: post.content }}
                 />
               ) : (
-                <p className="font-['EB_Garamond'] italic text-black/30 text-sm mt-2">— no body text —</p>
+                <p className="font-['EB_Garamond'] italic text-black/30 text-sm">— no body text —</p>
               )}
             </div>
 
             {/* Footer */}
-            <div className="px-7 py-4 border-t border-black/15 flex-shrink-0 flex items-center justify-between gap-4">
-              {/* Prev/next post titles */}
-              <div className="flex-1 min-w-0 text-[10px] font-mono tracking-widest uppercase text-black/30 truncate">
-                {prevPost && <span>← {prevPost.title}</span>}
-              </div>
-              <button onClick={closeModal}
+            <div className="px-8 py-4 border-t border-black/15 flex items-center justify-between">
+              <span className="font-mono text-[10px] tracking-widest uppercase text-black/30">
+                {post.source || "telegram"} · {post.type || "post"}
+              </span>
+              <button
+                onClick={closeModal}
                 className="font-black text-[11px] tracking-widest uppercase text-black
-                  border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-colors flex-shrink-0">
+                  border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-colors"
+              >
                 ← BACK
               </button>
-              <div className="flex-1 min-w-0 text-[10px] font-mono tracking-widest uppercase text-black/30 truncate text-right">
-                {nextPost && <span>{nextPost.title} →</span>}
-              </div>
             </div>
           </div>
 
@@ -642,283 +608,3 @@ export default function BlogPostModal() {
     </>
   )
 }
-// import { useParams, useNavigate } from "react-router-dom"
-// import { useEffect, useState, useCallback } from "react"
-
-// // ─── URL helpers ─────────────────────────────────────────────────────────────
-
-// function getYoutubeID(url) {
-//   const match = url?.match(/(?:\?v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/)
-//   return match ? match[1] : null
-// }
-// function getRumbleID(url) {
-//   if (!url) return null
-//   const match = url.match(/rumble\.com\/(?:embed\/)?(v[a-z0-9]+)/i)
-//   return match ? match[1] : null
-// }
-// function detectType(url) {
-//   if (!url) return null
-//   if (getYoutubeID(url)) return "youtube"
-//   if (getRumbleID(url)) return "rumble"
-//   if (/\.(mp4|webm|ogg)(\?|$)/i.test(url)) return "mp4"
-//   if (/\.(jpe?g|png|gif|webp|avif|svg)(\?|$)/i.test(url)) return "image"
-//   return null
-// }
-// function buildMediaList(post) {
-//   const items = []
-//   const push = (url, forcedType) => {
-//     const type = forcedType ?? detectType(url)
-//     if (type) items.push({ url, type })
-//   }
-//   if (post.cover)            push(post.cover, "image")
-//   post.photos?.forEach(u => push(u, "image"))
-//   if (post.video)            push(post.video, "mp4")
-//   if (post.url)              push(post.url)
-//   post.videos?.forEach(u => push(u))
-//   return items
-// }
-
-// // ─── Thumbnail ───────────────────────────────────────────────────────────────
-
-// function Thumb({ item, active, onClick, index }) {
-//   const base = `relative w-14 h-10 overflow-hidden cursor-pointer flex-shrink-0
-//     border-2 transition-all duration-200 select-none
-//     ${active ? "border-white scale-105" : "border-transparent opacity-40 hover:opacity-80 hover:scale-105"}`
-
-//   if (item.type === "image") {
-//     return (
-//       <button onClick={onClick} className={base}>
-//         <img src={item.url} alt="" className="w-full h-full object-cover" />
-//       </button>
-//     )
-//   }
-//   if (item.type === "youtube") {
-//     return (
-//       <button onClick={onClick} className={base}>
-//         <img src={`https://img.youtube.com/vi/${getYoutubeID(item.url)}/mqdefault.jpg`}
-//           alt="" className="w-full h-full object-cover" />
-//         <span className="absolute inset-0 flex items-center justify-center">
-//           <span className="bg-red-600 w-5 h-5 flex items-center justify-center text-white text-[9px]">▶</span>
-//         </span>
-//       </button>
-//     )
-//   }
-//   if (item.type === "rumble") {
-//     return (
-//       <button onClick={onClick} className={`${base} bg-[#85c742] flex flex-col items-center justify-center`}>
-//         <span className="text-white text-[8px] font-black">RUMBLE</span>
-//         <span className="text-white text-[7px]">▶</span>
-//       </button>
-//     )
-//   }
-//   return (
-//     <button onClick={onClick} className={`${base} bg-black flex items-center justify-center`}>
-//       <span className="text-white text-lg">▶</span>
-//     </button>
-//   )
-// }
-
-// // ─── Media renderer ───────────────────────────────────────────────────────────
-
-// function MediaViewer({ item }) {
-//   if (!item) return null
-//   if (item.type === "image") return <img src={item.url} alt="" className="w-full h-full object-contain" />
-//   if (item.type === "mp4") return (
-//     <video key={item.url} controls className="w-full h-full object-contain">
-//       <source src={item.url} type="video/mp4" />
-//     </video>
-//   )
-//   if (item.type === "youtube") return (
-//     <iframe key={item.url} className="w-full h-full"
-//       src={`https://www.youtube.com/embed/${getYoutubeID(item.url)}`}
-//       title="YouTube" frameBorder="0"
-//       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-//       allowFullScreen />
-//   )
-//   if (item.type === "rumble") return (
-//     <iframe key={item.url} className="w-full h-full"
-//       src={`https://rumble.com/embed/${getRumbleID(item.url)}/`}
-//       title="Rumble" frameBorder="0" allowFullScreen />
-//   )
-//   return null
-// }
-
-// // ─── Modal ────────────────────────────────────────────────────────────────────
-
-// export default function BlogPostModal() {
-//   const { id }     = useParams()
-//   const navigate   = useNavigate()
-//   const API_URL    = import.meta.env.VITE_API_URL
-
-//   const [post, setPost]         = useState(null)
-//   const [show, setShow]         = useState(false)
-//   const [mediaIndex, setMediaIndex] = useState(0)
-
-//   useEffect(() => {
-//     document.body.style.overflow = "hidden"
-//     return () => { document.body.style.overflow = "auto" }
-//   }, [])
-
-//   useEffect(() => { setTimeout(() => setShow(true), 10) }, [])
-
-//   useEffect(() => {
-//     fetch(`${API_URL}/api/blog/${id}`)
-//       .then(r => r.ok ? r.json() : Promise.reject())
-//       .then(setPost)
-//       .catch(console.error)
-//   }, [id])
-
-//   const mediaList = post ? buildMediaList(post) : []
-
-//   const handleKey = useCallback((e) => {
-//     if (!mediaList.length) return
-//     if (e.key === "ArrowRight") setMediaIndex(i => (i + 1) % mediaList.length)
-//     if (e.key === "ArrowLeft")  setMediaIndex(i => (i - 1 + mediaList.length) % mediaList.length)
-//     if (e.key === "Escape")     closeModal()
-//   }, [mediaList.length])
-
-//   useEffect(() => {
-//     window.addEventListener("keydown", handleKey)
-//     return () => window.removeEventListener("keydown", handleKey)
-//   }, [handleKey])
-
-//   function closeModal() {
-//     setShow(false)
-//     setTimeout(() => navigate(-1), 220)
-//   }
-
-//   if (!post) return null
-
-//   const hasMany = mediaList.length > 1
-//   const current = mediaList[mediaIndex] ?? null
-//   const prev = () => setMediaIndex(i => (i - 1 + mediaList.length) % mediaList.length)
-//   const next = () => setMediaIndex(i => (i + 1) % mediaList.length)
-
-//   return (
-//     <>
-//       <style>{`
-//         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
-//         .modal-prose p { margin-bottom: 1em; }
-//         .modal-prose a { text-decoration: underline; }
-//       `}</style>
-
-//       {/* Backdrop */}
-//       <div
-//         onClick={closeModal}
-//         className={`fixed inset-0 z-50 flex items-center justify-center p-4
-//           transition-all duration-300 backdrop-blur-sm
-//           ${show ? "bg-black/60 opacity-100" : "bg-black/0 opacity-0"}`}
-//       >
-//         <div
-//           onClick={e => e.stopPropagation()}
-//           className={`bg-[#f8f5ef] w-full max-w-6xl max-h-[95vh] flex flex-col md:flex-row
-//             relative overflow-hidden border-4 border-black
-//             transition-all duration-300 ease-out
-//             ${show ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
-//         >
-
-//           {/* Close */}
-//           <button
-//             onClick={closeModal}
-//             className="absolute top-0 right-0 z-20 w-10 h-10 bg-black text-white
-//               font-black text-base flex items-center justify-center
-//               hover:bg-red-600 transition-colors"
-//           >
-//             ✕
-//           </button>
-
-//           {/* ── LEFT: media ── */}
-//           {mediaList.length > 0 && (
-//             <div className="md:w-1/2 w-full bg-black flex flex-col min-h-0 flex-shrink-0">
-//               <div className="relative flex-1 flex items-center justify-center overflow-hidden min-h-[220px]">
-//                 <MediaViewer item={current} />
-
-//                 {hasMany && (
-//                   <>
-//                     <button onClick={prev}
-//                       className="absolute left-2 top-1/2 -translate-y-1/2 z-10
-//                         bg-black/60 hover:bg-black text-white w-9 h-9 flex items-center justify-center
-//                         text-2xl transition-all hover:scale-110">
-//                       ‹
-//                     </button>
-//                     <button onClick={next}
-//                       className="absolute right-2 top-1/2 -translate-y-1/2 z-10
-//                         bg-black/60 hover:bg-black text-white w-9 h-9 flex items-center justify-center
-//                         text-2xl transition-all hover:scale-110">
-//                       ›
-//                     </button>
-//                     <span className="absolute bottom-3 right-3 bg-black/70 text-white text-[10px] px-2 py-0.5 font-mono tracking-widest">
-//                       {mediaIndex + 1} / {mediaList.length}
-//                     </span>
-//                   </>
-//                 )}
-//               </div>
-
-//               {hasMany && (
-//                 <div className="flex gap-2 px-3 py-2 bg-black/90 overflow-x-auto flex-shrink-0">
-//                   {mediaList.map((item, i) => (
-//                     <Thumb key={i} item={item} index={i} active={i === mediaIndex} onClick={() => setMediaIndex(i)} />
-//                   ))}
-//                 </div>
-//               )}
-//             </div>
-//           )}
-
-//           {/* ── RIGHT: text ── */}
-//           <div className="flex-1 flex flex-col overflow-y-auto">
-
-//             {/* Newspaper header */}
-//             <div className="px-8 pt-10 pb-5 border-b-2 border-black">
-//               <div className="flex items-center gap-3 mb-3">
-//                 <time className="font-mono text-[10px] tracking-widest uppercase text-black/45">{post.date}</time>
-//                 {post.tags?.map(t => (
-//                   <span key={t} className="font-black text-[10px] tracking-widest uppercase text-black/50 border-l border-black/25 pl-3">#{t}</span>
-//                 ))}
-//               </div>
-
-//               {/* Rule above title */}
-//               <div className="w-full border-t border-black/20 mb-3" />
-
-//               <h1 className="font-['Playfair_Display'] font-black text-3xl leading-tight">
-//                 {post.title}
-//               </h1>
-
-//               {post.excerpt && (
-//                 <p className="font-['EB_Garamond'] italic text-base text-black/60 mt-2 leading-relaxed">
-//                   {post.excerpt}
-//                 </p>
-//               )}
-//             </div>
-
-//             {/* Body */}
-//             <div className="px-8 py-6 flex-1">
-//               {post.content ? (
-//                 <div
-//                   className="modal-prose font-['EB_Garamond'] text-[15px] leading-relaxed text-black/80 columns-1"
-//                   dangerouslySetInnerHTML={{ __html: post.content }}
-//                 />
-//               ) : (
-//                 <p className="font-['EB_Garamond'] italic text-black/30 text-sm">— no body text —</p>
-//               )}
-//             </div>
-
-//             {/* Footer */}
-//             <div className="px-8 py-4 border-t border-black/15 flex items-center justify-between">
-//               <span className="font-mono text-[10px] tracking-widest uppercase text-black/30">
-//                 {post.source || "telegram"} · {post.type || "post"}
-//               </span>
-//               <button
-//                 onClick={closeModal}
-//                 className="font-black text-[11px] tracking-widest uppercase text-black
-//                   border border-black px-3 py-1.5 hover:bg-black hover:text-white transition-colors"
-//               >
-//                 ← BACK
-//               </button>
-//             </div>
-//           </div>
-
-//         </div>
-//       </div>
-//     </>
-//   )
-// }
