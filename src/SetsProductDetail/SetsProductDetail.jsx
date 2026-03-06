@@ -651,7 +651,7 @@ export default function SetsProductDetail() {
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <>
-      <div className="flex flex-col  min-h-screen">
+      <div className="flex flex-col border-2 border-indigo-200 min-h-screen">
         <div className="z-50 flex-shrink-0">
           <SocialButtons
             ref={socialButtonsRef}
@@ -671,15 +671,15 @@ export default function SetsProductDetail() {
         >
           <div className="w-full hidden sm:block flex items-start mb-4" />
 
-          <div className="w-full  h-[50%] flex flex-col lg:flex-row relative">
+          <div className="w-full border-2 border-indigo-600 h-[50%] flex flex-col lg:flex-row relative">
             {/* ── Информационная панель ─────────────────────────────────── */}
             <div className="flex lg:flex-col w-full">
 
               {/* DESKTOP: три отдельных аккордеона */}
-              <div className="hidden lg:block  w-full">
+              <div className="hidden lg:block border-2 border-indigo-200 w-full">
                 <div
                   ref={(el) => (refs.current.info = el)}
-                  className="w-full  flex flex-col"
+                  className="w-full border-2 border-indigo-200 flex flex-col"
                   style={{
                     opacity:
                       animationState.slideChanging ||
@@ -808,7 +808,7 @@ export default function SetsProductDetail() {
             {/* ── Swiper галерея ───────────────────────────────────────── */}
             <div
               ref={(el) => (refs.current.swiperContainer = el)}
-              className="w-full  lg:w-[75%] lg:h-[100%] mt-10 lg:mt-0 lg:content-center"
+              className="w-full border-2 border-indigo-200 lg:w-[75%] lg:h-[100%] mt-10 lg:mt-0 lg:content-center"
               style={{
                 visibility:
                   !imageData || animationState.complete ? "visible" : "hidden",
@@ -927,7 +927,7 @@ export default function SetsProductDetail() {
       </div>
     </>
   );
-}
+} 
 // import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 // import { useLocation, useParams, useNavigate, useSearchParams } from "react-router-dom";
 // import gsap from "gsap";

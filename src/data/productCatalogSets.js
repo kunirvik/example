@@ -223,8 +223,10 @@ const productCatalogSets = [
       "/images/sets/quaterr215h80w125d40top.png",
     ],
     sample: [
-      { type: "image", src: "/images/sample/quater.webp", caption: "підпис 1" },
-      { type: "image", src: "/images/sample/box.webp", caption: "підпис 2" },
+      { type: "image", src: "/images/sample/vertwall1.webp", caption: "підпис 1" },
+      { type: "image", src: "/images/sample/vertwall1.2.webp", caption: "підпис 2" },
+      { type: "image", src: "/images/sample/vertwall2.webp", caption: "підпис 3" },
+      { type: "image", src: "/images/sample/vertwall3.webp", caption: "підпис 4" },
     ],
     year: 2023,
     description: "Комплекты для самостоятельного строительства элементов.",
