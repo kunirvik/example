@@ -34,7 +34,7 @@ export default function SkateparksProductDetail() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-
+const hasPlayedTransitionRef = useRef(false);
   const isTouchDevice =
     typeof window !== "undefined" &&
     ("ontouchstart" in window || navigator.maxTouchPoints > 0);
@@ -115,7 +115,7 @@ export default function SkateparksProductDetail() {
   const updateUrl = useCallback((productId) => {
     if (refs.current.urlUpdateBlocked) return;
     refs.current.urlUpdateBlocked = true;
-    window.history.replaceState(null, "", `/product/sets/${productId}`);
+    window.history.replaceState(null, "", `/product/skateparks/${productId}`);
     setTimeout(() => {
       refs.current.urlUpdateBlocked = false;
     }, 50);
@@ -299,11 +299,13 @@ export default function SkateparksProductDetail() {
   // FIX 2: читаем animationInProgressRef.current вместо animationState.inProgress
   // FIX 3: showInfoAndThumbs добавлен в deps
   const startTransitionAnimation = useCallback(() => {
+
     if (
       !refs.current.transitionImage ||
       !refs.current.swiperContainer ||
       !imageData ||
-      animationInProgressRef.current // ← FIX 2: ref, не state
+      animationInProgressRef.current || 
+       hasPlayedTransitionRef.current  // ✅ Не проигрывать повторно // ← FIX 2: ref, не state
     ) {
       updateAnimationState({ complete: true });
       return;
@@ -368,10 +370,18 @@ export default function SkateparksProductDetail() {
 
         updateAnimationState({ complete: true });
 
+
+          // ✅ Очищаем imageData через React Router — не трогает transitionImage
+  navigate(location.pathname + location.search, {
+    replace: true,
+    state: {},
+  }); 
+
         if (!state.thumbsShown) {
           await showInfoAndThumbs(); // FIX 3: showInfoAndThumbs в deps
           updateState({ thumbsShown: true });
         }
+  hasPlayedTransitionRef.current = true; // ✅ Помечаем как сыгранную
 
         animationInProgressRef.current = false; // FIX 2
         updateAnimationState({ inProgress: false });

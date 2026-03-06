@@ -116,7 +116,7 @@ export default function RampsProductDetail() {
   const updateUrl = useCallback((productId) => {
     if (refs.current.urlUpdateBlocked) return;
     refs.current.urlUpdateBlocked = true;
-    window.history.replaceState(null, "", `/product/sets/${productId}`);
+    window.history.replaceState(null, "", `/product/ramps/${productId}`);
     setTimeout(() => {
       refs.current.urlUpdateBlocked = false;
     }, 50);
