@@ -867,106 +867,120 @@ function PostNav({ post, direction }) {
   )
 }
 
-// ─── Media Gallery ────────────────────────────────────────────────────────────
-// Prominent series/event media block: big active player + card grid below
-
-function mediaLabel(item) {
-  if (item.type === "youtube") return "YouTube"
-  if (item.type === "rumble")  return "Rumble"
-  if (item.type === "mp4")     return "Video"
-  return "Photo"
-}
+// ─── Top Media Player ─────────────────────────────────────────────────────────
+// All media in one unified block at the top of the page.
+// Single item → just the player. Multiple → player + thumbnail strip below.
 
 function mediaThumb(item) {
   if (item.type === "youtube") return `https://img.youtube.com/vi/${getYoutubeID(item.url)}/hqdefault.jpg`
   if (item.type === "image")   return item.url
   return null
 }
+function mediaLabel(item) {
+  if (item.type === "youtube") return "YT"
+  if (item.type === "rumble")  return "RBL"
+  if (item.type === "mp4")     return "VID"
+  return "IMG"
+}
+function isVideo(t) { return t === "youtube" || t === "mp4" || t === "rumble" }
 
-function MediaGallery({ items, activeIndex, onSelect }) {
-  const active = items[activeIndex] ?? items[0]
-  const activeIdx = activeIndex >= 0 ? activeIndex : 0
-  const isVideo = t => t === "youtube" || t === "mp4" || t === "rumble"
+function TopMediaPlayer({ items, activeIndex, onSelect, postTitle }) {
+  const active  = items[activeIndex] ?? items[0]
+  const actIdx  = Math.max(0, activeIndex)
+  const hasMany = items.length > 1
 
   return (
-    <div className="mb-10 -mx-0">
-      {/* ── Section header ── */}
-      <div className="flex items-stretch gap-0 mb-0">
-        <div className="bg-[#ff6b00] px-4 flex items-center">
-          <span className="font-['Barlow_Condensed'] font-black text-white text-[11px] uppercase tracking-[0.22em]">
-            {isVideo(items[0]?.type) ? "▶ Video Series" : "📷 Photo Series"}
-          </span>
-        </div>
-        <div className="flex-1 bg-[#1a1a1a] border-t border-b border-r border-[#ff6b00]/30 flex items-center px-4">
-          <span className="font-['Barlow'] text-white/30 text-xs">
-            {items.length} {items.length === 1 ? "item" : "items"} — click to play
-          </span>
-        </div>
+    <div className="w-full bg-black">
+
+      {/* ── Main player ── */}
+      <div className="w-full max-w-6xl mx-auto">
+        {active.type === "image" ? (
+          <img
+            src={active.url}
+            alt={postTitle}
+            className="w-full h-auto block"
+            style={{ maxHeight: "72vh", objectFit: "contain", objectPosition: "center" }}
+            loading="eager"
+          />
+        ) : (
+          <MediaEmbed item={active} />
+        )}
       </div>
 
-      {/* ── Active player (full width, prominent) ── */}
-      <div className="bg-black border-l-4 border-[#ff6b00]" id="media-player">
-        <MediaEmbed item={active} />
-      </div>
+      {/* ── Strip (only when multiple items) ── */}
+      {hasMany && (
+        <div className="border-t-2 border-[#ff6b00] bg-[#0d0d0d]">
 
-      {/* ── Card grid ── */}
-      <div
-        className="bg-[#161616] border border-t-0 border-white/[0.06] p-3"
-        style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "8px" }}
-      >
-        {items.map((item, i) => {
-          const thumb   = mediaThumb(item)
-          const isAct   = i === activeIdx
-          const isVid   = isVideo(item.type)
-          return (
-            <button
-              key={i}
-              onClick={() => { onSelect(i); document.getElementById("media-player")?.scrollIntoView({ behavior: "smooth", block: "nearest" }) }}
-              className={`group relative overflow-hidden text-left cursor-pointer transition-all duration-150 ${
-                isAct
-                  ? "ring-2 ring-[#ff6b00] ring-offset-1 ring-offset-[#161616]"
-                  : "opacity-60 hover:opacity-100"
-              }`}
-            >
-              {/* Thumbnail */}
-              <div className="relative bg-[#0f0f0f]" style={{ aspectRatio: "16/9" }}>
-                {thumb ? (
-                  <img src={thumb} alt="" loading="lazy"
-                    className={`w-full h-full object-cover transition-all duration-200 ${isAct ? "brightness-100" : "brightness-70 group-hover:brightness-90"}`} />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-[#1a1a1a]">
-                    <span className="text-white/20 text-3xl">▶</span>
-                  </div>
-                )}
+          {/* strip header */}
+          <div className="max-w-6xl mx-auto px-3 pt-2 pb-1 flex items-center gap-2">
+            <span className="font-['Barlow_Condensed'] font-black text-[#ff6b00] text-[10px] uppercase tracking-[0.2em]">
+              {isVideo(items[0]?.type) ? "▶ " : ""}
+              {items.length} {isVideo(items[0]?.type) ? "Videos" : "Media"} in this post
+            </span>
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="text-white/20 text-[10px] font-['Barlow'] uppercase tracking-wide">
+              {actIdx + 1} / {items.length}
+            </span>
+          </div>
 
-                {/* Play overlay for video */}
-                {isVid && (
-                  <div className={`absolute inset-0 flex items-center justify-center transition-colors ${isAct ? "bg-black/10" : "bg-black/30 group-hover:bg-black/15"}`}>
-                    <div className={`flex items-center justify-center transition-all duration-150 ${isAct ? "w-10 h-10 bg-[#ff6b00]" : "w-8 h-8 bg-[#ff6b00]/80 group-hover:w-10 group-hover:h-10 group-hover:bg-[#ff6b00]"}`}>
-                      <span className="text-white font-black ml-0.5" style={{ fontSize: isAct ? "14px" : "11px" }}>▶</span>
+          {/* scrollable thumbnail row */}
+          <div
+            className="max-w-6xl mx-auto px-3 pb-3 flex gap-2 overflow-x-auto"
+            style={{ scrollbarWidth: "thin", scrollbarColor: "#ff6b00 #1a1a1a" }}
+          >
+            {items.map((item, i) => {
+              const thumb  = mediaThumb(item)
+              const isAct  = i === actIdx
+              const isVid  = isVideo(item.type)
+              return (
+                <button
+                  key={i}
+                  onClick={() => onSelect(i)}
+                  title={`Item ${i + 1}`}
+                  className={`group relative flex-shrink-0 overflow-hidden cursor-pointer transition-all duration-150 ${
+                    isAct
+                      ? "ring-2 ring-[#ff6b00]"
+                      : "opacity-50 hover:opacity-90"
+                  }`}
+                  style={{ width: 148, aspectRatio: "16/9" }}
+                >
+                  {/* thumb */}
+                  {thumb ? (
+                    <img src={thumb} alt="" loading="lazy"
+                      className="absolute inset-0 w-full h-full object-cover" />
+                  ) : (
+                    <div className="absolute inset-0 bg-[#1a1a1a] flex items-center justify-center">
+                      <span className="text-white/20 text-2xl">▶</span>
                     </div>
+                  )}
+
+                  {/* dark overlay */}
+                  <div className={`absolute inset-0 transition-colors ${isAct ? "bg-black/10" : "bg-black/40 group-hover:bg-black/20"}`} />
+
+                  {/* play icon */}
+                  {isVid && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className={`flex items-center justify-center transition-all ${isAct ? "w-9 h-9 bg-[#ff6b00]" : "w-7 h-7 bg-[#ff6b00]/75 group-hover:w-9 group-hover:h-9 group-hover:bg-[#ff6b00]"}`}>
+                        <span className="text-white font-black text-[10px] ml-px">▶</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* number + type label */}
+                  <div className={`absolute bottom-0 left-0 right-0 flex items-center justify-between px-1.5 py-1 ${isAct ? "bg-[#ff6b00]" : "bg-black/70"}`}>
+                    <span className="font-['Barlow_Condensed'] font-black text-white text-[9px] uppercase tracking-wider">
+                      {isAct ? "▶ Playing" : `#${i + 1}`}
+                    </span>
+                    <span className="font-['Barlow_Condensed'] font-black text-white/60 text-[9px] uppercase">
+                      {mediaLabel(item)}
+                    </span>
                   </div>
-                )}
-
-                {/* Number badge */}
-                <div className={`absolute top-0 right-0 px-2 py-1 font-['Barlow_Condensed'] font-black text-[10px] tracking-widest ${isAct ? "bg-[#ff6b00] text-white" : "bg-black/60 text-white/50"}`}>
-                  {i + 2}
-                </div>
-
-                {/* Active indicator bar */}
-                {isAct && <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#ff6b00]" />}
-              </div>
-
-              {/* Label */}
-              <div className={`px-2 py-1.5 border-t transition-colors ${isAct ? "bg-[#ff6b00]/10 border-[#ff6b00]/30" : "bg-[#1a1a1a] border-white/5 group-hover:bg-[#222]"}`}>
-                <span className={`font-['Barlow_Condensed'] font-bold text-[11px] uppercase tracking-wide ${isAct ? "text-[#ff6b00]" : "text-white/40 group-hover:text-white/70"}`}>
-                  {isAct ? "▶ Now Playing" : mediaLabel(item)} #{i + 2}
-                </span>
-              </div>
-            </button>
-          )
-        })}
-      </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -1010,8 +1024,6 @@ export default function BlogPostModal() {
   useEffect(() => { window.addEventListener("keydown", handleKey); return () => window.removeEventListener("keydown", handleKey) }, [handleKey])
 
   const mediaList = post ? buildMediaList(post) : []
-  const heroMedia = mediaList[0] ?? null
-  const extraMedia = mediaList.slice(1)
 
   // ── Loading skeleton ───────────────────────────────────────────────────────
   if (loading) return (
@@ -1092,20 +1104,14 @@ export default function BlogPostModal() {
           </div>
         </div>
 
-        {/* ── Hero image / video ──────────────────────────────────────────── */}
-        {heroMedia && (
-          <div className="w-full bg-black pb-fade" style={{ maxHeight: "70vh", overflow: "hidden" }}>
-            {heroMedia.type === "image" ? (
-              <img src={heroMedia.url} alt={post.title}
-                className="w-full object-cover object-center"
-                style={{ maxHeight: "70vh" }}
-                loading="eager" />
-            ) : (
-              <div className="max-w-5xl mx-auto">
-                <MediaEmbed item={heroMedia} />
-              </div>
-            )}
-          </div>
+        {/* ── Top media player (all media in one place) ───────────────────── */}
+        {mediaList.length > 0 && (
+          <TopMediaPlayer
+            items={mediaList}
+            activeIndex={activeMedia}
+            onSelect={setActive}
+            postTitle={post.title}
+          />
         )}
 
         {/* ── Content + Sidebar ───────────────────────────────────────────── */}
@@ -1170,14 +1176,7 @@ export default function BlogPostModal() {
                 </div>
               )}
 
-              {/* ── Media Gallery ─────────────────────────────────────── */}
-              {extraMedia.length > 0 && (
-                <MediaGallery
-                  items={extraMedia}
-                  activeIndex={activeMedia - 1}
-                  onSelect={i => setActive(i + 1)}
-                />
-              )}
+
 
               {/* ── Prev / Next ───────────────────────────────────────── */}
               {(prevPost || nextPost) && (
