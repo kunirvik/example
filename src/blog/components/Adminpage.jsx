@@ -10,52 +10,6 @@ const headers = (extra = {}) => ({
 
 const TAGS = ["live", "construction", "parkramps", "bmx", "skate"]
 
-const EMOJI_GROUPS = {
-  "🏃 Спорт": ["🛹","🚵","🏂","⛷️","🏋️","🤸","🛼","🚴","🏄","🤾","🥇","🏆","🎯","💪","🔥"],
-  "🔨 Стройка": ["🔨","🪚","🔧","🪛","📐","📏","🧱","🪵","⚙️","🛠️","🔩","🪤","🏗️","🧰","✏️"],
-  "😊 Эмоции": ["😊","😎","🤙","👊","✌️","🙌","👏","🤩","😍","🥳","😤","💯","🔥","❤️","⚡"],
-  "🌍 Места": ["🏙️","🌆","🏞️","🌄","🏖️","🌊","🏔️","🌿","🌳","🌟","☀️","🌙","⛅","🌈","🎆"],
-  "📸 Медиа": ["📸","🎥","🎬","📹","🎞️","📡","🎙️","🎤","📻","💻","📱","🖥️","⌨️","🖱️","💾"],
-}
-
-function EmojiPicker({ onSelect, onClose }) {
-  const [activeGroup, setActiveGroup] = useState(Object.keys(EMOJI_GROUPS)[0])
-  const ref = useRef()
-
-  useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) onClose()
-    }
-    document.addEventListener("mousedown", handleClick)
-    return () => document.removeEventListener("mousedown", handleClick)
-  }, [onClose])
-
-  return (
-    <div ref={ref} className="absolute z-50 bottom-10 left-0 bg-white border border-zinc-200 rounded-xl shadow-xl w-72 overflow-hidden">
-      {/* Group tabs */}
-      <div className="flex overflow-x-auto border-b border-zinc-100 bg-zinc-50">
-        {Object.keys(EMOJI_GROUPS).map(group => (
-          <button key={group} onClick={() => setActiveGroup(group)}
-            className={`px-3 py-2 text-xs whitespace-nowrap transition-colors ${
-              activeGroup === group ? "bg-white border-b-2 border-zinc-900 font-semibold" : "text-zinc-400 hover:text-zinc-700"
-            }`}>
-            {group.split(" ")[0]}
-          </button>
-        ))}
-      </div>
-      {/* Emojis */}
-      <div className="p-3 grid grid-cols-8 gap-1">
-        {EMOJI_GROUPS[activeGroup].map(emoji => (
-          <button key={emoji} onClick={() => onSelect(emoji)}
-            className="text-xl hover:bg-zinc-100 rounded-lg p-1 transition-colors leading-none">
-            {emoji}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 function PostRow({ post, onEdit, onDelete }) {
   return (
     <div className="group flex items-start gap-4 p-4 border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
@@ -104,99 +58,15 @@ function Modal({ title, onClose, children }) {
   )
 }
 
-// Textarea с emoji picker
-function EmojiTextarea({ value, onChange, placeholder, className }) {
-  const [showPicker, setShowPicker] = useState(false)
-  const textareaRef = useRef()
-
-  function insertEmoji(emoji) {
-    const el = textareaRef.current
-    const start = el.selectionStart
-    const end = el.selectionEnd
-    const newVal = value.slice(0, start) + emoji + value.slice(end)
-    onChange(newVal)
-    // Восстановить курсор после emoji
-    setTimeout(() => {
-      el.focus()
-      el.setSelectionRange(start + emoji.length, start + emoji.length)
-    }, 0)
-  }
-
-  return (
-    <div className="relative">
-      <textarea
-        ref={textareaRef}
-        className={className}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-      />
-      <button
-        type="button"
-        onClick={() => setShowPicker(p => !p)}
-        className="absolute bottom-2 right-2 text-lg hover:scale-110 transition-transform leading-none"
-        title="Добавить эмодзи"
-      >
-        😊
-      </button>
-      {showPicker && (
-        <EmojiPicker
-          onSelect={emoji => { insertEmoji(emoji); setShowPicker(false) }}
-          onClose={() => setShowPicker(false)}
-        />
-      )}
-    </div>
-  )
-}
-
-// Input с emoji picker
-function EmojiInput({ value, onChange, placeholder, className }) {
-  const [showPicker, setShowPicker] = useState(false)
-  const inputRef = useRef()
-
-  function insertEmoji(emoji) {
-    const el = inputRef.current
-    const start = el.selectionStart
-    const end = el.selectionEnd
-    const newVal = value.slice(0, start) + emoji + value.slice(end)
-    onChange(newVal)
-    setTimeout(() => {
-      el.focus()
-      el.setSelectionRange(start + emoji.length, start + emoji.length)
-    }, 0)
-  }
-
-  return (
-    <div className="relative">
-      <input
-        ref={inputRef}
-        className={className}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        placeholder={placeholder}
-      />
-      <button
-        type="button"
-        onClick={() => setShowPicker(p => !p)}
-        className="absolute right-2 top-1/2 -translate-y-1/2 text-lg hover:scale-110 transition-transform leading-none"
-      >
-        😊
-      </button>
-      {showPicker && (
-        <EmojiPicker
-          onSelect={emoji => { insertEmoji(emoji); setShowPicker(false) }}
-          onClose={() => setShowPicker(false)}
-        />
-      )}
-    </div>
-  )
-}
-
 function PostForm({ initial = {}, onSave, onCancel, loading }) {
   const [form, setForm] = useState({
-    title: "", content: "", excerpt: "",
+    title: "",
+    content: "",
+    excerpt: "",
     date: new Date().toISOString().slice(0, 10),
-    tags: [], cover: "", url: "",
+    tags: [],
+    cover: "",
+    url: "",
     ...initial,
     tags: initial.tags || [],
   })
@@ -211,7 +81,9 @@ function PostForm({ initial = {}, onSave, onCancel, loading }) {
       const data = new FormData()
       data.append("file", file)
       const res = await fetch(`${API_URL}/api/upload`, {
-        method: "POST", headers: headers(), body: data,
+        method: "POST",
+        headers: headers(),
+        body: data,
       })
       const json = await res.json()
       if (file.type.startsWith("video")) set("video", json.url)
@@ -233,17 +105,13 @@ function PostForm({ initial = {}, onSave, onCancel, loading }) {
     <div className="space-y-4">
       <div>
         <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Заголовок *</label>
-        <EmojiInput
-          className="mt-1 w-full border border-zinc-200 rounded-lg px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
-          value={form.title} onChange={v => set("title", v)}
-          placeholder="Заголовок поста"
-        />
+        <input className="mt-1 w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          value={form.title} onChange={e => set("title", e.target.value)} placeholder="Заголовок поста" />
       </div>
 
       <div>
         <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Дата</label>
-        <input type="date"
-          className="mt-1 w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+        <input type="date" className="mt-1 w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
           value={form.date} onChange={e => set("date", e.target.value)} />
       </div>
 
@@ -256,20 +124,21 @@ function PostForm({ initial = {}, onSave, onCancel, loading }) {
                 form.tags.includes(tag)
                   ? "bg-zinc-900 text-white border-zinc-900"
                   : "border-zinc-200 text-zinc-500 hover:border-zinc-400"
-              }`}>#{tag}</button>
+              }`}>
+              #{tag}
+            </button>
           ))}
         </div>
       </div>
 
       <div>
-        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Обложка</label>
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Обложка / Фото</label>
         <div className="mt-1 flex gap-2">
-          <input
-            className="flex-1 border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
-            value={form.cover || ""} onChange={e => set("cover", e.target.value)}
-            placeholder="URL или загрузи файл" />
-          <button onClick={() => fileRef.current.click()} disabled={uploading}
-            className="px-3 py-2 border border-zinc-200 rounded-lg text-sm hover:bg-zinc-50 transition whitespace-nowrap">
+          <input className="flex-1 border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+            value={form.cover || ""} onChange={e => set("cover", e.target.value)} placeholder="URL или загрузи файл" />
+          <button onClick={() => fileRef.current.click()}
+            className="px-3 py-2 border border-zinc-200 rounded-lg text-sm hover:bg-zinc-50 transition whitespace-nowrap"
+            disabled={uploading}>
             {uploading ? "⏳" : "📎 Загрузить"}
           </button>
           <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden"
@@ -280,28 +149,20 @@ function PostForm({ initial = {}, onSave, onCancel, loading }) {
 
       <div>
         <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">YouTube / Rumble URL</label>
-        <input
-          className="mt-1 w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
-          value={form.url || ""} onChange={e => set("url", e.target.value)}
-          placeholder="https://youtu.be/..." />
+        <input className="mt-1 w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          value={form.url || ""} onChange={e => set("url", e.target.value)} placeholder="https://youtu.be/..." />
       </div>
 
       <div>
         <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Краткое описание</label>
-        <EmojiInput
-          className="mt-1 w-full border border-zinc-200 rounded-lg px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
-          value={form.excerpt || ""} onChange={v => set("excerpt", v)}
-          placeholder="Короткое описание для карточки"
-        />
+        <input className="mt-1 w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+          value={form.excerpt || ""} onChange={e => set("excerpt", e.target.value)} placeholder="Короткое описание для карточки" />
       </div>
 
       <div>
         <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Текст поста</label>
-        <EmojiTextarea
-          className="mt-1 w-full border border-zinc-200 rounded-lg px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 h-36 resize-none"
-          value={form.content || ""} onChange={v => set("content", v)}
-          placeholder="Основной текст..."
-        />
+        <textarea className="mt-1 w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 h-36 resize-none"
+          value={form.content || ""} onChange={e => set("content", e.target.value)} placeholder="Основной текст..." />
       </div>
 
       <div className="flex gap-3 pt-2">
@@ -319,25 +180,34 @@ function PostForm({ initial = {}, onSave, onCancel, loading }) {
 }
 
 export default function AdminPage() {
-  const [posts, setPosts]     = useState([])
+  const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving]   = useState(false)
+  const [saving, setSaving] = useState(false)
   const [editing, setEditing] = useState(null)
   const [creating, setCreating] = useState(false)
-  const [search, setSearch]   = useState("")
+  const [search, setSearch] = useState("")
   const [activeTag, setActiveTag] = useState("all")
-  const [authed, setAuthed]   = useState(false)
+  const [authed, setAuthed] = useState(false)
   const [keyInput, setKeyInput] = useState("")
 
-  useEffect(() => { if (ADMIN_KEY) setAuthed(true) }, [])
-  useEffect(() => { if (authed) loadPosts() }, [authed])
+  // Simple client-side auth check
+  useEffect(() => {
+    if (ADMIN_KEY) setAuthed(true)
+  }, [])
+console.log("ADMIN KEY:", import.meta.env.VITE_ADMIN_KEY)
+  useEffect(() => {
+    if (authed) loadPosts()
+  }, [authed])
 
   async function loadPosts() {
     setLoading(true)
     try {
       const res = await fetch(`${API_URL}/api/blog`)
-      setPosts(await res.json())
-    } finally { setLoading(false) }
+      const data = await res.json()
+      setPosts(data)
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function deletePost(id) {
@@ -351,15 +221,19 @@ export default function AdminPage() {
     try {
       const isNew = !form.id
       const id = form.id || form.title.toLowerCase().replace(/[^a-zа-яё0-9\s]/gi, "").trim().replace(/\s+/g, "-").slice(0, 50) + `-${Date.now()}`
+      const body = { ...form, id, source: "admin" }
+
       await fetch(`${API_URL}/api/blog${isNew ? "" : `/${id}`}`, {
         method: isNew ? "POST" : "PUT",
         headers: headers({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ ...form, id, source: "admin" }),
+        body: JSON.stringify(body),
       })
       setEditing(null)
       setCreating(false)
       loadPosts()
-    } finally { setSaving(false) }
+    } finally {
+      setSaving(false)
+    }
   }
 
   const filtered = posts
@@ -371,19 +245,12 @@ export default function AdminPage() {
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl">
           <h1 className="text-2xl font-bold mb-6">Админ панель</h1>
-          <input type="password"
-            className="w-full border border-zinc-200 rounded-lg px-3 py-2 mb-3 text-sm"
+          <input type="password" className="w-full border border-zinc-200 rounded-lg px-3 py-2 mb-3 text-sm"
             placeholder="Admin key" value={keyInput}
             onChange={e => setKeyInput(e.target.value)}
-            onKeyDown={e => {
-              if (e.key !== "Enter") return
-              if (!ADMIN_KEY) { alert("VITE_ADMIN_KEY не задан — передеплой Vercel"); return }
-              keyInput === ADMIN_KEY ? setAuthed(true) : alert("Неверный ключ")
-            }} />
-          <button onClick={() => {
-            if (!ADMIN_KEY) { alert("VITE_ADMIN_KEY не задан — передеплой Vercel"); return }
-            keyInput === ADMIN_KEY ? setAuthed(true) : alert("Неверный ключ")
-          }} className="w-full py-2.5 bg-zinc-900 text-white rounded-lg text-sm font-semibold hover:bg-zinc-700 transition">
+            onKeyDown={e => e.key === "Enter" && keyInput === ADMIN_KEY && setAuthed(true)} />
+          <button onClick={() => keyInput === ADMIN_KEY ? setAuthed(true) : alert("Неверный ключ")}
+            className="w-full py-2.5 bg-zinc-900 text-white rounded-lg text-sm font-semibold hover:bg-zinc-700 transition">
             Войти
           </button>
         </div>
@@ -393,6 +260,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50">
+      {/* Header */}
       <div className="bg-white border-b border-zinc-200 px-6 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-zinc-900">Блог · Админ</h1>
@@ -404,6 +272,7 @@ export default function AdminPage() {
         </button>
       </div>
 
+      {/* Filters */}
       <div className="bg-white border-b border-zinc-100 px-6 py-3 flex gap-3 flex-wrap items-center">
         <input className="border border-zinc-200 rounded-lg px-3 py-1.5 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-zinc-900"
           placeholder="Поиск..." value={search} onChange={e => setSearch(e.target.value)} />
@@ -412,28 +281,34 @@ export default function AdminPage() {
             <button key={tag} onClick={() => setActiveTag(tag)}
               className={`px-3 py-1 rounded-full text-xs border transition-all ${
                 activeTag === tag ? "bg-zinc-900 text-white border-zinc-900" : "border-zinc-200 text-zinc-500 hover:border-zinc-400"
-              }`}>#{tag}</button>
+              }`}>
+              #{tag}
+            </button>
           ))}
         </div>
       </div>
 
+      {/* Posts list */}
       <div className="max-w-4xl mx-auto mt-6 bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm">
         {loading
           ? <div className="p-12 text-center text-zinc-400">Загрузка...</div>
           : filtered.length === 0
             ? <div className="p-12 text-center text-zinc-400">Постов не найдено</div>
             : filtered.map(post => (
-                <PostRow key={post.id} post={post} onEdit={setEditing} onDelete={deletePost} />
+                <PostRow key={post.id} post={post}
+                  onEdit={setEditing} onDelete={deletePost} />
               ))
         }
       </div>
 
+      {/* Edit modal */}
       {editing && (
         <Modal title="Редактировать пост" onClose={() => setEditing(null)}>
           <PostForm initial={editing} onSave={savePost} onCancel={() => setEditing(null)} loading={saving} />
         </Modal>
       )}
 
+      {/* Create modal */}
       {creating && (
         <Modal title="Новый пост" onClose={() => setCreating(false)}>
           <PostForm onSave={savePost} onCancel={() => setCreating(false)} loading={saving} />

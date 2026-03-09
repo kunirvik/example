@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useLocation, useParams, useNavigate, useSearchParams } from "react-router-dom";
 import gsap from "gsap";
@@ -67,9 +68,6 @@ export default function SetsProductDetail() {
     virobi: null,
   });
 
-  // Оверлей-переход перед открытием галереи вироби
-  const [galleryTransition, setGalleryTransition] = useState(false);
-
   const [swiperInstances, setSwiperInstances] = useState({
     main: null,
     thumbs: null,
@@ -105,9 +103,6 @@ export default function SetsProductDetail() {
 
   // FIX 2: отдельный ref для inProgress — читается мгновенно без stale closure
   const animationInProgressRef = useRef(false);
-
-  // FIX 4: защита от повтора анимации при reload и после openGallery-навигации
-  const hasPlayedAnimationRef = useRef(false);
 
   const socialButtonsRef = useRef(null);
 
@@ -301,17 +296,15 @@ export default function SetsProductDetail() {
   }, []); // refs стабильны, зависимостей нет
 
   // ─── Transition animation ─────────────────────────────────────────────────
-  // FIX 1: window.history.replaceState убран, заменён на navigate ПОСЛЕ complete:true
-  // FIX 2: читаем animationInProgressRef вместо animationState.inProgress
+  // FIX 1: убран window.history.replaceState из onComplete
+  // FIX 2: читаем animationInProgressRef.current вместо animationState.inProgress
   // FIX 3: showInfoAndThumbs добавлен в deps
-  // FIX 4: hasPlayedAnimationRef — защита от повтора при reload/gallery-навигации
   const startTransitionAnimation = useCallback(() => {
     if (
-      hasPlayedAnimationRef.current || // ← FIX 4: уже играла — пропускаем
       !refs.current.transitionImage ||
       !refs.current.swiperContainer ||
       !imageData ||
-      animationInProgressRef.current  // ← FIX 2: ref, не state
+      animationInProgressRef.current // ← FIX 2: ref, не state
     ) {
       updateAnimationState({ complete: true });
       return;
@@ -368,44 +361,29 @@ export default function SetsProductDetail() {
       duration: ANIMATION_CONFIG.DURATION,
       ease: ANIMATION_CONFIG.EASE,
       onComplete: async () => {
-        // 1. Визуально скрываем transition image через GSAP (мгновенно, до ре-рендера)
         gsap.set(swiperEl, { visibility: "visible", opacity: 1 });
         gsap.set(transitionEl, { visibility: "hidden", opacity: 0 });
 
-        // 2. Помечаем — анимация сыграла, больше не запускать
-        hasPlayedAnimationRef.current = true; // ← FIX 4
+        // FIX 1: window.history.replaceState УДАЛЁН — он очищал imageData
+        // и приводил к размонтированию transitionImage
 
-        // 3. Выставляем complete:true — React поставит ре-рендер в очередь
         updateAnimationState({ complete: true });
 
-        // 4. Ждём один тик, чтобы React успел зафиксировать complete:true
-        //    (transition image уже unmount'ится перед тем, как navigate очистит state)
-        //    FIX 1 / FIX 4: navigate вместо history.replaceState — 
-        //    корректно очищает location.state для React Router,
-        //    защищает от повтора при reload и после openGallery-навигации
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        navigate(
-          window.location.pathname + window.location.search,
-          { replace: true, state: null }
-        );
-
-        // 5. Показываем info и thumbs
         if (!state.thumbsShown) {
-          await showInfoAndThumbs();
+          await showInfoAndThumbs(); // FIX 3: showInfoAndThumbs в deps
           updateState({ thumbsShown: true });
         }
 
-        animationInProgressRef.current = false; // ← FIX 2
+        animationInProgressRef.current = false; // FIX 2
         updateAnimationState({ inProgress: false });
       },
     });
   }, [
     imageData,
-    navigate,           // ← добавлен (используется в onComplete)
     updateAnimationState,
     updateState,
-    showInfoAndThumbs,  // FIX 3
-    // animationState.inProgress УДАЛЁН — используем ref (FIX 2)
+    showInfoAndThumbs, // FIX 3: добавлен
+    // animationState.inProgress УДАЛЁН — теперь используем ref (FIX 2)
   ]);
 
   // ─── Swiper init ──────────────────────────────────────────────────────────
@@ -545,30 +523,8 @@ export default function SetsProductDetail() {
   // ─── Accordion ────────────────────────────────────────────────────────────
   const handleAccordionToggle = (type) => (index) => {
     if (type === "virobi") {
+      openGallery("sets", state.activeProductIndex);
       setAccordionState((prev) => ({ ...prev, virobi: null }));
-
-      // 1. Показываем fade-in оверлей
-      setGalleryTransition(true);
-
-      // 2. Ждём пока оверлей полностью появится (длительность transition = 400ms)
-      //    затем очищаем imageData и переходим в галерею
-      setTimeout(() => {
-        // Очищаем location.state — при возврате из галереи
-        // shouldShowLoading будет true → LoadingScreen запустится сам
-        navigate(
-          window.location.pathname + window.location.search,
-          { replace: true, state: null }
-        );
-        // Сбрасываем hasPlayedAnimationRef — при возврате анимация
-        // перехода не нужна, нужен LoadingScreen
-        hasPlayedAnimationRef.current = true;
-
-        // Небольшая пауза чтобы navigate зафиксировался до перехода в галерею
-        setTimeout(() => {
-          openGallery("sets", state.activeProductIndex);
-        }, 50);
-      }, 420);
-
       return;
     }
 
@@ -696,18 +652,6 @@ export default function SetsProductDetail() {
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── Оверлей-переход при открытии галереи вироби ───────────────────
-          Fade-in белого экрана → очищает imageData → открывается галерея.
-          При возврате из галереи imageData уже null → показывается LoadingScreen. */}
-      <div
-        className="fixed inset-0 z-[9999] bg-white pointer-events-none"
-        style={{
-          opacity:    galleryTransition ? 1 : 0,
-          transition: galleryTransition
-            ? "opacity 0.4s ease"      // плавно появляется
-            : "opacity 0s",            // мгновенно сбрасывается (компонент перезагрузится)
-        }}
-      />
       <div className="flex flex-col border-2 border-indigo-200 min-h-screen">
         <div className="z-50 flex-shrink-0">
           <SocialButtons
@@ -985,6 +929,7 @@ export default function SetsProductDetail() {
     </>
   );
 }
+
 // import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 // import { useLocation, useParams, useNavigate, useSearchParams } from "react-router-dom";
 // import gsap from "gsap";
