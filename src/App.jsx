@@ -65,7 +65,7 @@ function App() {
 
   // Если модалка открыта — в state.background хранится /blog
   // BlogPage рендерится на фоне, модалка поверх
-  const background = location.state?.background;
+  // const background = location.state?.background;
 
   return (
     <>
@@ -84,11 +84,11 @@ function App() {
       </Routes>
 
       {/* Модалка рендерится ПОВЕРХ фонового роута */}
-      {background && (
+      {/* {background && ( */}
         <Routes>
           <Route path="/blog/post/:id" element={<BlogPostModal />} />
         </Routes>
-      )}
+      {/* )} */}
     </>
   )
 }
