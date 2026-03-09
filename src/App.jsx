@@ -69,7 +69,8 @@ function App() {
 
   return (
     <>
-      <Routes location={background || location} key={(background || location).pathname}>
+      {/* <Routes location={background || location} key={(background || location).pathname}> */}
+<Routes location={location} key={location.pathname}>
         <Route path="/" element={<MenuPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/catalogue" element={<Catalogue />} />
@@ -81,13 +82,12 @@ function App() {
         <Route path="projectpage" element={<ProjectPage />} />
 <Route path="/admin" element={<AdminPage />} />
 
-      </Routes>
+    
 
       {/* Модалка рендерится ПОВЕРХ фонового роута */}
       {/* {background && ( */}
-        <Routes>
           <Route path="/blog/post/:id" element={<BlogPostModal />} />
-        </Routes>
+         </Routes>
       {/* )} */}
     </>
   )
