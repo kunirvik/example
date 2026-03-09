@@ -187,7 +187,7 @@ z"/></svg>,
   return (
     <>
       {/* ───────────── DESKTOP ───────────── */}
-      <div className="hidden border-2 border-indigo-200 md:flex fixed top-0 left-0 w-full h-12 bg-black items-center justify-between px-6 z-50">
+      <div className="hidden  md:flex fixed top-0 left-0 w-full h-12 bg-black items-center justify-between px-6 z-50">
        <Link to="/catalogue"> <img src="/logo.png" alt="Logo" className="opacity-50 max-h-12" /></Link>
 
         <div ref={menuRef} className="flex items-center gap-2 relative">
