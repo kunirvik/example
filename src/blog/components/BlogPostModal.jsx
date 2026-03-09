@@ -867,6 +867,110 @@ function PostNav({ post, direction }) {
   )
 }
 
+// ─── Media Gallery ────────────────────────────────────────────────────────────
+// Prominent series/event media block: big active player + card grid below
+
+function mediaLabel(item) {
+  if (item.type === "youtube") return "YouTube"
+  if (item.type === "rumble")  return "Rumble"
+  if (item.type === "mp4")     return "Video"
+  return "Photo"
+}
+
+function mediaThumb(item) {
+  if (item.type === "youtube") return `https://img.youtube.com/vi/${getYoutubeID(item.url)}/hqdefault.jpg`
+  if (item.type === "image")   return item.url
+  return null
+}
+
+function MediaGallery({ items, activeIndex, onSelect }) {
+  const active = items[activeIndex] ?? items[0]
+  const activeIdx = activeIndex >= 0 ? activeIndex : 0
+  const isVideo = t => t === "youtube" || t === "mp4" || t === "rumble"
+
+  return (
+    <div className="mb-10 -mx-0">
+      {/* ── Section header ── */}
+      <div className="flex items-stretch gap-0 mb-0">
+        <div className="bg-[#ff6b00] px-4 flex items-center">
+          <span className="font-['Barlow_Condensed'] font-black text-white text-[11px] uppercase tracking-[0.22em]">
+            {isVideo(items[0]?.type) ? "▶ Video Series" : "📷 Photo Series"}
+          </span>
+        </div>
+        <div className="flex-1 bg-[#1a1a1a] border-t border-b border-r border-[#ff6b00]/30 flex items-center px-4">
+          <span className="font-['Barlow'] text-white/30 text-xs">
+            {items.length} {items.length === 1 ? "item" : "items"} — click to play
+          </span>
+        </div>
+      </div>
+
+      {/* ── Active player (full width, prominent) ── */}
+      <div className="bg-black border-l-4 border-[#ff6b00]" id="media-player">
+        <MediaEmbed item={active} />
+      </div>
+
+      {/* ── Card grid ── */}
+      <div
+        className="bg-[#161616] border border-t-0 border-white/[0.06] p-3"
+        style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "8px" }}
+      >
+        {items.map((item, i) => {
+          const thumb   = mediaThumb(item)
+          const isAct   = i === activeIdx
+          const isVid   = isVideo(item.type)
+          return (
+            <button
+              key={i}
+              onClick={() => { onSelect(i); document.getElementById("media-player")?.scrollIntoView({ behavior: "smooth", block: "nearest" }) }}
+              className={`group relative overflow-hidden text-left cursor-pointer transition-all duration-150 ${
+                isAct
+                  ? "ring-2 ring-[#ff6b00] ring-offset-1 ring-offset-[#161616]"
+                  : "opacity-60 hover:opacity-100"
+              }`}
+            >
+              {/* Thumbnail */}
+              <div className="relative bg-[#0f0f0f]" style={{ aspectRatio: "16/9" }}>
+                {thumb ? (
+                  <img src={thumb} alt="" loading="lazy"
+                    className={`w-full h-full object-cover transition-all duration-200 ${isAct ? "brightness-100" : "brightness-70 group-hover:brightness-90"}`} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-[#1a1a1a]">
+                    <span className="text-white/20 text-3xl">▶</span>
+                  </div>
+                )}
+
+                {/* Play overlay for video */}
+                {isVid && (
+                  <div className={`absolute inset-0 flex items-center justify-center transition-colors ${isAct ? "bg-black/10" : "bg-black/30 group-hover:bg-black/15"}`}>
+                    <div className={`flex items-center justify-center transition-all duration-150 ${isAct ? "w-10 h-10 bg-[#ff6b00]" : "w-8 h-8 bg-[#ff6b00]/80 group-hover:w-10 group-hover:h-10 group-hover:bg-[#ff6b00]"}`}>
+                      <span className="text-white font-black ml-0.5" style={{ fontSize: isAct ? "14px" : "11px" }}>▶</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Number badge */}
+                <div className={`absolute top-0 right-0 px-2 py-1 font-['Barlow_Condensed'] font-black text-[10px] tracking-widest ${isAct ? "bg-[#ff6b00] text-white" : "bg-black/60 text-white/50"}`}>
+                  {i + 2}
+                </div>
+
+                {/* Active indicator bar */}
+                {isAct && <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#ff6b00]" />}
+              </div>
+
+              {/* Label */}
+              <div className={`px-2 py-1.5 border-t transition-colors ${isAct ? "bg-[#ff6b00]/10 border-[#ff6b00]/30" : "bg-[#1a1a1a] border-white/5 group-hover:bg-[#222]"}`}>
+                <span className={`font-['Barlow_Condensed'] font-bold text-[11px] uppercase tracking-wide ${isAct ? "text-[#ff6b00]" : "text-white/40 group-hover:text-white/70"}`}>
+                  {isAct ? "▶ Now Playing" : mediaLabel(item)} #{i + 2}
+                </span>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function BlogPostModal() {
@@ -1066,49 +1170,13 @@ export default function BlogPostModal() {
                 </div>
               )}
 
-              {/* ── Extra media (photos/videos beyond the hero) ──────── */}
+              {/* ── Media Gallery ─────────────────────────────────────── */}
               {extraMedia.length > 0 && (
-                <div className="mb-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-1 h-5 bg-[#ff6b00]" />
-                    <h2 className="font-['Barlow_Condensed'] font-black text-[11px] uppercase tracking-[0.2em] text-white/50">
-                      Media
-                    </h2>
-                    <div className="flex-1 h-px bg-white/[0.06]" />
-                  </div>
-
-                  {/* Thumbnail strip — click to expand */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {extraMedia.map((item, i) => {
-                      const thumb = item.type === "youtube"
-                        ? `https://img.youtube.com/vi/${getYoutubeID(item.url)}/mqdefault.jpg`
-                        : item.type === "image" ? item.url : null
-                      return (
-                        <button key={i} onClick={() => setActive(i + 1)}
-                          className={`relative w-24 h-16 overflow-hidden border-2 transition-all duration-150 cursor-pointer flex-shrink-0 ${
-                            activeMedia === i + 1 ? "border-[#ff6b00] scale-105" : "border-white/10 hover:border-white/30 opacity-60 hover:opacity-100"
-                          }`}>
-                          {thumb
-                            ? <img src={thumb} alt="" className="w-full h-full object-cover" />
-                            : <div className="w-full h-full bg-[#222] flex items-center justify-center text-white/30 text-xl">▶</div>
-                          }
-                          {(item.type === "youtube" || item.type === "mp4" || item.type === "rumble") && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                              <span className="w-5 h-5 bg-[#ff6b00] flex items-center justify-center text-white text-[9px] ml-0.5">▶</span>
-                            </div>
-                          )}
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  {/* Active extra media */}
-                  {activeMedia > 0 && mediaList[activeMedia] && (
-                    <div className="bg-black">
-                      <MediaEmbed item={mediaList[activeMedia]} />
-                    </div>
-                  )}
-                </div>
+                <MediaGallery
+                  items={extraMedia}
+                  activeIndex={activeMedia - 1}
+                  onSelect={i => setActive(i + 1)}
+                />
               )}
 
               {/* ── Prev / Next ───────────────────────────────────────── */}
