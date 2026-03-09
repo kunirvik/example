@@ -22,35 +22,20 @@
 //   )
 // }
 import BlogCard from "./BlogCard"
-import Masonry from "react-masonry-css"
 
-export default function BlogFeed({ posts, view = "grid" }) {
-  const breakpointColumnsObj = {
-    default: 3,
-    1024: 2,
-    640: 1,
-  }
-
-  if (view === "list") {
-    return (
-      <div className="max-w-2xl">
-        {posts.map((post, index) => (
-          <BlogCard key={post.id} post={post} index={index} view="list" />
-        ))}
-      </div>
-    )
-  }
+// 3-column masonry-style grid (CSS columns, no library needed)
+export default function BlogFeed({ posts }) {
+  if (!posts.length) return null
 
   return (
-    <Masonry
-      breakpointCols={breakpointColumnsObj}
-      className="my-masonry-grid"
-      columnClassName="my-masonry-grid_column"
+    <div
+      className="grid gap-1"
+      style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
     >
       {posts.map((post, index) => (
-        <BlogCard key={post.id} post={post} index={index} view="grid" />
+        <BlogCard key={post.id} post={post} index={index} />
       ))}
-    </Masonry>
+    </div>
   )
 }
 // import BlogCard from "./BlogCard"
