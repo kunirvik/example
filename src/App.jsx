@@ -58,7 +58,8 @@ import Catalogue from "./Catalogue/Catalogue";
 import BlogPage from "./blog/components/BlogPage";
 import GalleryPage from "./GalleryPage/GalleryPage";
 import BlogPostModal from "./blog/components/BlogPostModal";
-import AdminPage from "./AdminPage/AdminPage";
+import AdminPage from "./blog/components/Adminpage";
+
 function App() {
   const location = useLocation();
 
