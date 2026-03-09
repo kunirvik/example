@@ -58,7 +58,7 @@ import Catalogue from "./Catalogue/Catalogue";
 import BlogPage from "./blog/components/BlogPage";
 import GalleryPage from "./GalleryPage/GalleryPage";
 import BlogPostModal from "./blog/components/BlogPostModal";
-
+import AdminPage from "./AdminPage/AdminPage";
 function App() {
   const location = useLocation();
 
@@ -78,6 +78,8 @@ function App() {
         <Route path="/product/skateparks/:id" element={<SkateparksProductDetail />} />
         <Route path="/blog/post/:id" element={<BlogPostModal />} />
         <Route path="projectpage" element={<ProjectPage />} />
+<Route path="/admin" element={<AdminPage />} />
+
       </Routes>
 
       {/* Модалка рендерится ПОВЕРХ фонового роута */}

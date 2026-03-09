@@ -224,7 +224,7 @@ const productCatalogSets = [
     ],
     sample: [
       { type: "image", src: "/images/sample/vertwall1.webp", caption: "підпис 1" },
-      { type: "image", src: "/images/sample/vertwall1.2.webp", caption: "підпис 2" },
+      { type: "image", src: "/images/sample/vertwall2.1.webp", caption: "підпис 2" },
       { type: "image", src: "/images/sample/vertwall2.webp", caption: "підпис 3" },
       { type: "image", src: "/images/sample/vertwall3.webp", caption: "підпис 4" },
     ],
