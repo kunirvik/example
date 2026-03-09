@@ -194,7 +194,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (ADMIN_KEY) setAuthed(true)
   }, [])
-
+console.log("ADMIN KEY:", import.meta.env.VITE_ADMIN_KEY)
   useEffect(() => {
     if (authed) loadPosts()
   }, [authed])
