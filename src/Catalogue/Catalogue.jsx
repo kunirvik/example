@@ -270,7 +270,7 @@ return (
       relative overflow-hidden transition-all duration-400 ease-in-out
 
       ${products.length === 3 && index === 2
-        ? "md:col-span-2 md:justify-self-center"
+        ? "md:col-span-2"
         : ""}
 
       ${selectedProduct !== null

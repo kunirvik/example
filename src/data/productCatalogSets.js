@@ -168,7 +168,7 @@ const productCatalogSets = [
   },
 
   {
-    id: 3,
+    id:1,
     name: "jumpbox",
     image: "/images/sets/box360/160yolobox1.png",
     altImages: [ "/images/sets/box360/160yolobox2.webp", "/images/sets/box360/160yolobox3.webp", "/images/sets/box360/160yolobox4.webp", 
