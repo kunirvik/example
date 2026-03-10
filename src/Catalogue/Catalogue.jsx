@@ -290,7 +290,8 @@ return (
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-contain transition-all duration-300"
+            className={`w-full h-full object-contain transition-all duration-300
+    ${index === 2 ? "scale-110" : ""}`}
             onMouseMove={!isMobile ? (e) => handleMouseMove(e, product.id) : undefined}
             onMouseLeave={!isMobile ? handleMouseLeave : undefined} 
           />
