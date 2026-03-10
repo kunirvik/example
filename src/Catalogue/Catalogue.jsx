@@ -268,7 +268,7 @@ return (
     className={`
       cursor-pointer flex justify-center items-center p-2 sm:p-4
       relative overflow-hidden transition-all duration-400 ease-in-out
-md:col-span-2 md:justify-self-center" md:h-[60vh]"
+md:col-span-2 md:justify-self-center md:h-[60vh]"
        
 
       ${selectedProduct !== null
@@ -284,7 +284,7 @@ md:col-span-2 md:justify-self-center" md:h-[60vh]"
     }}
   >
         <div onClick={(e) => handleClick(product, e)} 
-        className={`"flex flex-col items-center w-full h-full relative"   ${index === 2 ? "scale-200" : ""}`}>
+        className={`"flex flex-col items-center w-full h-full relative   ${index === 2 ? "scale-200" : ""}`}>
           <img
             src={product.image}
             alt={product.name}
