@@ -685,7 +685,6 @@
 //     </>
 //   )
 // }
-
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom"
 import { useEffect, useState, useCallback } from "react"
 import { usePostsContext } from "./BlogPage"
@@ -867,10 +866,6 @@ function PostNav({ post, direction }) {
   )
 }
 
-// ─── Top Media Player ─────────────────────────────────────────────────────────
-// All media in one unified block at the top of the page.
-// Single item → just the player. Multiple → player + thumbnail strip below.
-
 function mediaThumb(item) {
   if (item.type === "youtube") return `https://img.youtube.com/vi/${getYoutubeID(item.url)}/hqdefault.jpg`
   if (item.type === "image")   return item.url
@@ -883,107 +878,6 @@ function mediaLabel(item) {
   return "IMG"
 }
 function isVideo(t) { return t === "youtube" || t === "mp4" || t === "rumble" }
-
-function TopMediaPlayer({ items, activeIndex, onSelect, postTitle }) {
-  const active  = items[activeIndex] ?? items[0]
-  const actIdx  = Math.max(0, activeIndex)
-  const hasMany = items.length > 1
-
-  return (
-    <div className="w-full bg-black">
-
-      {/* ── Main player ── */}
-      <div className="w-full max-w-6xl mx-auto">
-        {active.type === "image" ? (
-          <img
-            src={active.url}
-            alt={postTitle}
-            className="w-full h-auto block"
-            style={{ maxHeight: "72vh", objectFit: "contain", objectPosition: "center" }}
-            loading="eager"
-          />
-        ) : (
-          <MediaEmbed item={active} />
-        )}
-      </div>
-
-      {/* ── Strip (only when multiple items) ── */}
-      {hasMany && (
-        <div className="border-t-2 border-[#ff6b00] bg-[#0d0d0d]">
-
-          {/* strip header */}
-          <div className="max-w-6xl mx-auto px-3 pt-2 pb-1 flex items-center gap-2">
-            <span className="font-['Barlow_Condensed'] font-black text-[#ff6b00] text-[10px] uppercase tracking-[0.2em]">
-              {isVideo(items[0]?.type) ? "▶ " : ""}
-              {items.length} {isVideo(items[0]?.type) ? "Videos" : "Media"} in this post
-            </span>
-            <div className="flex-1 h-px bg-white/10" />
-            <span className="text-white/20 text-[10px] font-['Barlow'] uppercase tracking-wide">
-              {actIdx + 1} / {items.length}
-            </span>
-          </div>
-
-          {/* scrollable thumbnail row */}
-          <div
-            className="max-w-6xl mx-auto px-3 pb-3 flex gap-2 overflow-x-auto"
-            style={{ scrollbarWidth: "thin", scrollbarColor: "#ff6b00 #1a1a1a" }}
-          >
-            {items.map((item, i) => {
-              const thumb  = mediaThumb(item)
-              const isAct  = i === actIdx
-              const isVid  = isVideo(item.type)
-              return (
-                <button
-                  key={i}
-                  onClick={() => onSelect(i)}
-                  title={`Item ${i + 1}`}
-                  className={`group relative flex-shrink-0 overflow-hidden cursor-pointer transition-all duration-150 ${
-                    isAct
-                      ? "ring-2 ring-[#ff6b00]"
-                      : "opacity-50 hover:opacity-90"
-                  }`}
-                  style={{ width: 148, aspectRatio: "16/9" }}
-                >
-                  {/* thumb */}
-                  {thumb ? (
-                    <img src={thumb} alt="" loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover" />
-                  ) : (
-                    <div className="absolute inset-0 bg-[#1a1a1a] flex items-center justify-center">
-                      <span className="text-white/20 text-2xl">▶</span>
-                    </div>
-                  )}
-
-                  {/* dark overlay */}
-                  <div className={`absolute inset-0 transition-colors ${isAct ? "bg-black/10" : "bg-black/40 group-hover:bg-black/20"}`} />
-
-                  {/* play icon */}
-                  {isVid && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className={`flex items-center justify-center transition-all ${isAct ? "w-9 h-9 bg-[#ff6b00]" : "w-7 h-7 bg-[#ff6b00]/75 group-hover:w-9 group-hover:h-9 group-hover:bg-[#ff6b00]"}`}>
-                        <span className="text-white font-black text-[10px] ml-px">▶</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* number + type label */}
-                  <div className={`absolute bottom-0 left-0 right-0 flex items-center justify-between px-1.5 py-1 ${isAct ? "bg-[#ff6b00]" : "bg-black/70"}`}>
-                    <span className="font-['Barlow_Condensed'] font-black text-white text-[9px] uppercase tracking-wider">
-                      {isAct ? "▶ Playing" : `#${i + 1}`}
-                    </span>
-                    <span className="font-['Barlow_Condensed'] font-black text-white/60 text-[9px] uppercase">
-                      {mediaLabel(item)}
-                    </span>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
@@ -1037,66 +931,75 @@ export default function BlogPostModal() {
     </div>
   )
 
+  const NAV_H = 44 // px — top bar height
+
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
 
-        @keyframes pbFadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        .pb-fade { animation: pbFadeIn 0.4s ease forwards; }
-
-        .post-body { color: rgba(255,255,255,0.72); font-family:'Barlow',sans-serif; font-size:15px; line-height:1.75; }
-        .post-body p  { margin-bottom: 1.1em; }
-        .post-body h2 { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:1.4rem; text-transform:uppercase; color:#fff; margin:1.6em 0 0.5em; letter-spacing:0.04em; }
-        .post-body h3 { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1.1rem; text-transform:uppercase; color:#fff; margin:1.3em 0 0.4em; }
+        .post-body { color:rgba(255,255,255,0.72); font-family:'Barlow',sans-serif; font-size:14px; line-height:1.72; }
+        .post-body p  { margin-bottom:1em; }
+        .post-body h2 { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:1.25rem; text-transform:uppercase; color:#fff; margin:1.4em 0 0.4em; }
+        .post-body h3 { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1rem; text-transform:uppercase; color:#fff; margin:1.1em 0 0.3em; }
         .post-body a  { color:#ff6b00; text-decoration:underline; }
         .post-body a:hover { color:#ff8c33; }
-        .post-body ul, .post-body ol { padding-left:1.4em; margin-bottom:1em; }
-        .post-body li { margin-bottom:0.3em; }
-        .post-body blockquote { border-left:3px solid #ff6b00; padding:0.6em 1em; margin:1.2em 0; background:rgba(255,107,0,0.07); color:rgba(255,255,255,0.6); font-style:italic; }
-        .post-body img { max-width:100%; height:auto; margin:1em 0; }
-        .post-body hr  { border:none; border-top:1px solid rgba(255,255,255,0.08); margin:1.6em 0; }
+        .post-body ul, .post-body ol { padding-left:1.3em; margin-bottom:0.9em; }
+        .post-body li { margin-bottom:0.25em; }
+        .post-body blockquote { border-left:3px solid #ff6b00; padding:0.5em 0.9em; margin:1em 0; background:rgba(255,107,0,0.07); color:rgba(255,255,255,0.55); font-style:italic; }
+        .post-body hr { border:none; border-top:1px solid rgba(255,255,255,0.08); margin:1.3em 0; }
 
-        * { scrollbar-width: thin; scrollbar-color: #333 transparent; }
-        ::-webkit-scrollbar { width:5px } ::-webkit-scrollbar-thumb { background:#333 }
-        ::-webkit-scrollbar-thumb:hover { background:#ff6b00 }
+        .right-scroll { overflow-y:auto; scrollbar-width:thin; scrollbar-color:#2a2a2a transparent; }
+        .right-scroll::-webkit-scrollbar { width:4px; }
+        .right-scroll::-webkit-scrollbar-thumb { background:#2a2a2a; border-radius:2px; }
+        .right-scroll::-webkit-scrollbar-thumb:hover { background:#ff6b00; }
+
+        .thumb-strip { scrollbar-width:thin; scrollbar-color:#ff6b00 #1a1a1a; }
+        .thumb-strip::-webkit-scrollbar { height:3px; }
+        .thumb-strip::-webkit-scrollbar-thumb { background:#ff6b00; }
       `}</style>
 
-      <div className="min-h-screen bg-[#111] text-white">
+      {/* ── Full-screen shell ───────────────────────────────────────────────── */}
+      <div className="bg-[#111] text-white flex flex-col" style={{ height: "100dvh" }}>
 
-        {/* ── Sticky top bar ─────────────────────────────────────────────── */}
-        <div className="sticky top-0 z-40 bg-[#0d0d0d]/95 backdrop-blur-sm border-b border-white/10">
-          <div className="max-w-7xl mx-auto px-4 h-11 flex items-center gap-3">
+        {/* ── Top nav bar (fixed height) ─────────────────────────────────── */}
+        <div className="flex-shrink-0 bg-[#0d0d0d] border-b border-white/10 z-40"
+          style={{ height: NAV_H }}>
+          <div className="h-full px-4 flex items-center gap-3">
+
             <button onClick={() => navigate("/blog")}
-              className="flex items-center gap-2 text-white/40 hover:text-[#ff6b00] transition-colors duration-150 group cursor-pointer">
-              <span className="text-lg group-hover:-translate-x-0.5 transition-transform">←</span>
-              <span className="font-['Barlow_Condensed'] font-bold text-[11px] uppercase tracking-[0.15em]">Back</span>
+              className="flex items-center gap-1.5 text-white/40 hover:text-[#ff6b00] transition-colors group cursor-pointer flex-shrink-0">
+              <span className="text-base group-hover:-translate-x-0.5 transition-transform inline-block">←</span>
+              <span className="font-['Barlow_Condensed'] font-bold text-[10px] uppercase tracking-[0.15em]">All Posts</span>
             </button>
 
-            <span className="text-white/10">|</span>
+            <span className="text-white/10 flex-shrink-0">|</span>
 
-            {/* Breadcrumb tags */}
-            <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+            {/* Tags */}
+            <div className="flex gap-1.5 overflow-x-auto flex-1 min-w-0" style={{ scrollbarWidth:"none" }}>
               {post.tags?.map(t => (
                 <span key={t} className="flex-shrink-0 bg-[#ff6b00] text-white text-[9px] font-black uppercase tracking-widest px-2 py-1">
                   {t}
                 </span>
               ))}
+              <span className="flex-shrink-0 text-white/20 font-['Barlow'] text-[11px] self-center ml-2 truncate hidden sm:block">
+                {post.title}
+              </span>
             </div>
 
-            {/* Post nav arrows on the right */}
-            <div className="ml-auto flex items-center gap-1">
+            {/* Prev / Next post */}
+            <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
               {prevPost && (
                 <button onClick={() => navigate(`/blog/post/${prevPost.id}`)}
                   title={prevPost.title}
-                  className="w-8 h-8 flex items-center justify-center border border-white/10 hover:border-[#ff6b00] hover:text-[#ff6b00] text-white/30 transition-all duration-150 cursor-pointer font-bold text-lg">
+                  className="w-8 h-8 flex items-center justify-center border border-white/10 hover:border-[#ff6b00] hover:text-[#ff6b00] text-white/30 transition-all cursor-pointer font-bold text-lg">
                   ‹
                 </button>
               )}
               {nextPost && (
                 <button onClick={() => navigate(`/blog/post/${nextPost.id}`)}
                   title={nextPost.title}
-                  className="w-8 h-8 flex items-center justify-center border border-white/10 hover:border-[#ff6b00] hover:text-[#ff6b00] text-white/30 transition-all duration-150 cursor-pointer font-bold text-lg">
+                  className="w-8 h-8 flex items-center justify-center border border-white/10 hover:border-[#ff6b00] hover:text-[#ff6b00] text-white/30 transition-all cursor-pointer font-bold text-lg">
                   ›
                 </button>
               )}
@@ -1104,155 +1007,146 @@ export default function BlogPostModal() {
           </div>
         </div>
 
-        {/* ── Top media player (all media in one place) ───────────────────── */}
-        {mediaList.length > 0 && (
-          <TopMediaPlayer
-            items={mediaList}
-            activeIndex={activeMedia}
-            onSelect={setActive}
-            postTitle={post.title}
-          />
-        )}
+        {/* ── Body: two panels side-by-side ─────────────────────────────── */}
+        <div className="flex flex-1 min-h-0">
 
-        {/* ── Content + Sidebar ───────────────────────────────────────────── */}
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex gap-8 items-start">
+          {/* ══ LEFT PANEL — media ════════════════════════════════════════ */}
+          <div className="flex flex-col bg-black border-r border-white/[0.07]"
+            style={{ width: "58%", minWidth: 0 }}>
 
-            {/* ── MAIN column ──────────────────────────────────────────── */}
-            <main className="flex-1 min-w-0 pb-fade">
+            {/* Active player — fills all available height minus strip */}
+            <div className="flex-1 min-h-0 flex items-center justify-center bg-black overflow-hidden">
+              {mediaList.length > 0
+                ? <MediaEmbed item={mediaList[activeMedia] ?? mediaList[0]} />
+                : (
+                  <div className="flex flex-col items-center gap-3 text-white/10">
+                    <span className="text-5xl">✦</span>
+                    <span className="font-['Barlow_Condensed'] text-xs uppercase tracking-widest">No media</span>
+                  </div>
+                )
+              }
+            </div>
 
-              {/* Header */}
-              <div className="mb-6 pb-5 border-b border-white/10">
+            {/* Thumbnail strip (only when multiple) */}
+            {mediaList.length > 1 && (
+              <div className="flex-shrink-0 bg-[#0a0a0a] border-t-2 border-[#ff6b00]">
+                {/* strip header */}
+                <div className="flex items-center gap-2 px-3 pt-2 pb-1">
+                  <span className="font-['Barlow_Condensed'] font-black text-[#ff6b00] text-[10px] uppercase tracking-[0.18em]">
+                    {mediaList.length} {isVideo(mediaList[0]?.type) ? "Videos" : "Media"}
+                  </span>
+                  <div className="flex-1 h-px bg-white/10" />
+                  <span className="text-white/20 font-['Barlow'] text-[10px]">{activeMedia + 1} / {mediaList.length}</span>
+                </div>
+                {/* thumbnails */}
+                <div className="thumb-strip flex gap-2 px-3 pb-3 overflow-x-auto">
+                  {mediaList.map((item, i) => {
+                    const thumb = mediaThumb(item)
+                    const isAct = i === activeMedia
+                    const isVid = isVideo(item.type)
+                    return (
+                      <button key={i} onClick={() => setActive(i)}
+                        style={{ width: 120, aspectRatio: "16/9", flexShrink: 0 }}
+                        className={`relative overflow-hidden cursor-pointer transition-all duration-150 ${
+                          isAct ? "ring-2 ring-[#ff6b00]" : "opacity-45 hover:opacity-90"
+                        }`}>
+                        {thumb
+                          ? <img src={thumb} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+                          : <div className="absolute inset-0 bg-[#1a1a1a] flex items-center justify-center text-white/20 text-xl">▶</div>
+                        }
+                        <div className={`absolute inset-0 ${isAct ? "bg-black/10" : "bg-black/40"}`} />
+                        {isVid && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className={`flex items-center justify-center transition-all ${isAct ? "w-8 h-8 bg-[#ff6b00]" : "w-6 h-6 bg-[#ff6b00]/70"}`}>
+                              <span className="text-white font-black text-[9px] ml-px">▶</span>
+                            </div>
+                          </div>
+                        )}
+                        {/* bottom label */}
+                        <div className={`absolute bottom-0 left-0 right-0 px-1.5 py-0.5 ${isAct ? "bg-[#ff6b00]" : "bg-black/70"}`}>
+                          <span className="font-['Barlow_Condensed'] font-black text-white text-[8px] uppercase tracking-wide">
+                            {isAct ? "▶ Playing" : `#${i + 1} ${mediaLabel(item)}`}
+                          </span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ══ RIGHT PANEL — text (independently scrollable) ════════════ */}
+          <div className="right-scroll flex flex-col flex-1 min-w-0 min-h-0"
+            style={{ overflowY: "auto" }}>
+
+            <div className="p-5 flex flex-col gap-5 flex-1">
+
+              {/* ── Article header ── */}
+              <div className="pb-4 border-b border-white/10">
                 {/* Tags */}
-                <div className="flex flex-wrap gap-1.5 mb-4">
+                <div className="flex flex-wrap gap-1.5 mb-3">
                   {post.tags?.map(t => (
-                    <span key={t} className="bg-[#ff6b00] text-white text-[9px] font-black uppercase tracking-[0.18em] px-2.5 py-1.5">
+                    <span key={t} className="bg-[#ff6b00] text-white text-[9px] font-black uppercase tracking-[0.18em] px-2 py-1">
                       {t}
                     </span>
                   ))}
                 </div>
 
                 {/* Title */}
-                <h1 className="font-['Barlow_Condensed'] font-black text-white text-3xl md:text-5xl uppercase leading-[1.02] tracking-tight mb-4">
+                <h1 className="font-['Barlow_Condensed'] font-black text-white text-2xl xl:text-3xl uppercase leading-[1.04] tracking-tight mb-3">
                   {post.title}
                 </h1>
 
-                {/* Excerpt / lead */}
+                {/* Excerpt */}
                 {post.excerpt && (
-                  <p className="text-white/55 font-['Barlow'] text-base leading-relaxed border-l-2 border-[#ff6b00] pl-4 mb-4">
+                  <p className="text-white/50 font-['Barlow'] text-sm leading-relaxed border-l-2 border-[#ff6b00] pl-3 mb-3">
                     {post.excerpt}
                   </p>
                 )}
 
-                {/* Meta row */}
-                <div className="flex flex-wrap items-center gap-4 text-[11px] font-['Barlow'] uppercase tracking-wide">
-                  <div className="flex items-center gap-2 text-white/35">
-                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
-                      <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-                    </svg>
-                    <time>{post.date}</time>
-                  </div>
-                  {post.source && (
-                    <div className="flex items-center gap-2 text-white/25">
-                      <span className="w-1 h-1 bg-white/20 rounded-full" />
-                      <span>{post.source}</span>
-                    </div>
-                  )}
-                  {mediaList.length > 0 && (
-                    <div className="flex items-center gap-2 text-white/25">
-                      <span className="w-1 h-1 bg-white/20 rounded-full" />
-                      <span>{mediaList.length} {mediaList.length === 1 ? "media" : "media items"}</span>
-                    </div>
-                  )}
+                {/* Meta */}
+                <div className="flex flex-wrap items-center gap-3 text-[10px] font-['Barlow'] uppercase tracking-wide text-white/30">
+                  <time>{post.date}</time>
+                  {post.source && <><span className="w-0.5 h-0.5 bg-white/20 rounded-full" /><span>{post.source}</span></>}
+                  {mediaList.length > 1 && <><span className="w-0.5 h-0.5 bg-white/20 rounded-full" /><span>{mediaList.length} media</span></>}
                 </div>
               </div>
 
-              {/* ── Body text ────────────────────────────────────────── */}
-              {post.content ? (
-                <div className="post-body mb-8" dangerouslySetInnerHTML={{ __html: post.content }} />
-              ) : (
-                <div className="text-white/20 font-['Barlow'] italic text-sm py-4 mb-8">
-                  — No body text —
-                </div>
-              )}
+              {/* ── Body ── */}
+              <div className="flex-1">
+                {post.content
+                  ? <div className="post-body" dangerouslySetInnerHTML={{ __html: post.content }} />
+                  : <p className="text-white/15 font-['Barlow'] italic text-sm">— No body text —</p>
+                }
+              </div>
 
-
-
-              {/* ── Prev / Next ───────────────────────────────────────── */}
-              {(prevPost || nextPost) && (
-                <div className="mt-8 pt-6 border-t border-white/10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-1 h-5 bg-[#ff6b00]" />
-                    <span className="font-['Barlow_Condensed'] font-black text-[11px] uppercase tracking-[0.2em] text-white/50">
-                      More Dispatches
+              {/* ── Related posts ── */}
+              {morePosts.length > 0 && (
+                <div className="pt-4 border-t border-white/10">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1 h-4 bg-[#ff6b00]" />
+                    <span className="font-['Barlow_Condensed'] font-black text-[10px] uppercase tracking-[0.2em] text-white/40">
+                      {related.length ? "Related" : "More Posts"}
                     </span>
                     <div className="flex-1 h-px bg-white/[0.06]" />
                   </div>
-                  <div className="flex gap-2">
-                    {prevPost && <PostNav post={prevPost} direction="prev" />}
-                    {nextPost && <PostNav post={nextPost} direction="next" />}
+                  <div className="grid grid-cols-2 gap-1">
+                    {morePosts.slice(0, 4).map(p => <RelatedCard key={p.id} post={p} />)}
                   </div>
                 </div>
               )}
 
-            </main>
-
-            {/* ── SIDEBAR ──────────────────────────────────────────────── */}
-            <aside className="w-72 flex-shrink-0 hidden xl:block sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto pb-8">
-
-              {/* Related / More posts */}
-              <div className="bg-[#161616] border border-white/[0.06]">
-                <div className="px-4 py-3 border-b border-white/[0.06] flex items-center gap-2">
-                  <div className="w-2 h-2 bg-[#ff6b00]" />
-                  <span className="font-['Barlow_Condensed'] font-black text-[10px] uppercase tracking-[0.2em] text-white/50">
-                    {related.length ? "Related" : "Latest Posts"}
-                  </span>
-                </div>
-                <div className="p-3 space-y-3">
-                  {morePosts.map(p => <RelatedCard key={p.id} post={p} />)}
-                </div>
-              </div>
-
-              {/* Tags cloud */}
-              {post.tags?.length > 0 && (
-                <div className="mt-3 bg-[#161616] border border-white/[0.06]">
-                  <div className="px-4 py-3 border-b border-white/[0.06] flex items-center gap-2">
-                    <div className="w-2 h-2 bg-[#ff6b00]" />
-                    <span className="font-['Barlow_Condensed'] font-black text-[10px] uppercase tracking-[0.2em] text-white/50">Tags</span>
-                  </div>
-                  <div className="p-3 flex flex-wrap gap-1.5">
-                    {post.tags.map(t => (
-                      <span key={t} className="bg-[#ff6b00]/10 border border-[#ff6b00]/20 text-[#ff6b00] text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5">
-                        {t}
-                      </span>
-                    ))}
-                  </div>
+              {/* ── Prev / Next ── */}
+              {(prevPost || nextPost) && (
+                <div className="flex gap-2 pt-2">
+                  {prevPost && <PostNav post={prevPost} direction="prev" />}
+                  {nextPost && <PostNav post={nextPost} direction="next" />}
                 </div>
               )}
 
-              {/* Back to blog */}
-              <button onClick={() => navigate("/blog")}
-                className="mt-3 w-full bg-[#ff6b00] hover:bg-[#e55f00] text-white font-['Barlow_Condensed'] font-black text-[11px] uppercase tracking-[0.2em] py-3 transition-colors duration-150 cursor-pointer">
-                ← All Posts
-              </button>
-            </aside>
-
-          </div>
-
-          {/* ── Mobile: Related posts ──────────────────────────────────── */}
-          <div className="xl:hidden mt-10 pt-6 border-t border-white/10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-1 h-5 bg-[#ff6b00]" />
-              <span className="font-['Barlow_Condensed'] font-black text-[11px] uppercase tracking-[0.2em] text-white/50">
-                {related.length ? "Related" : "Latest Posts"}
-              </span>
-              <div className="flex-1 h-px bg-white/[0.06]" />
-            </div>
-            <div className="grid grid-cols-2 gap-1">
-              {morePosts.slice(0, 4).map(p => <RelatedCard key={p.id} post={p} />)}
             </div>
           </div>
-
         </div>
       </div>
     </>
