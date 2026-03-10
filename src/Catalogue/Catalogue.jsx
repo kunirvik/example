@@ -285,7 +285,7 @@ return (
     }}
   >
         <div onClick={(e) => handleClick(product, e)} 
-        className={`flex flex-col items-center w-full h-full relative   ${index === 2 ? "scale-200" : ""}  ${index === 1 ? "scale-85" : ""}`}>
+        className={`flex flex-col items-center w-full h-full relative   ${index === 2 ? "md:scale-200" : ""}  ${index === 1 ? "md:scale-90" : ""}`}>
           <img
             src={product.image}
             alt={product.name}
