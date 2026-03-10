@@ -59,6 +59,7 @@ import BlogPage from "./blog/components/BlogPage";
 import GalleryPage from "./GalleryPage/GalleryPage";
 import BlogPostModal from "./blog/components/BlogPostModal";
 import AdminPage from "./blog/components/Adminpage";
+import AllGalleryPage from "./Allgallerypage";
 
 function App() {
   const location = useLocation();
@@ -74,7 +75,10 @@ function App() {
         <Route path="/" element={<MenuPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/catalogue" element={<Catalogue />} />
-        <Route path="/gallery/:type/:id" element={<GalleryPage />} />
+     <Route path="/gallery/all" element={<AllGalleryPage />} />    
+     <Route path="/gallery/:type/:id" element={<GalleryPage />} />
+ 
+ 
         <Route path="/product/sets/:id" element={<SetsProductDetail />} />
         <Route path="/product/ramps/:id" element={<RampsProductDetail />} />
         <Route path="/product/skateparks/:id" element={<SkateparksProductDetail />} />

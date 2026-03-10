@@ -103,41 +103,22 @@
 //   return <FilmGallery slides={product.sample} />;
 // }
 
+// GalleryPage.jsx
+// Маршруты:
+//   /gallery/:type/:id  →  FilmGallery (конкретный продукт, startIndex из state)
+//   /gallery/all        →  AllGalleryPage (общая галерея-сетка всех фото)
 
 import { useParams, useLocation } from "react-router-dom";
-import { useState } from "react";
 import FilmGallery from "../FilmGallery";
+import productCatalogSets        from "../data/productCatalogSets";
+import productCatalogRamps       from "../data/productCatalogRamps";
+import productCatalogSkateparks  from "../data/productCatalogSkateparks";
 
-import productCatalogSets from "../data/productCatalogSets";
-import productCatalogRamps from "../data/productCatalogRamps";
-import productCatalogSkateparks from "../data/productCatalogSkateparks";
-
-
-// ВСЕ слайды из всех каталогов
-// const allSlides = [
-//   ...productCatalogSets,
-//   ...productCatalogRamps,
-//   ...productCatalogSkateparks,
-// ].flatMap((p) => p.sample || []);
-
-// const allSlides = [
-//   ...productCatalogSets.flatMap((p) =>
-//     (p.sample || []).map((s) => ({ ...s, cat: "sets" }))
-//   ),
-//   ...productCatalogRamps.flatMap((p) =>
-//     (p.sample || []).map((s) => ({ ...s, cat: "ramps" }))
-//   ),
-//   ...productCatalogSkateparks.flatMap((p) =>
-//     (p.sample || []).map((s) => ({ ...s, cat: "skateparks" }))
-//   ),
-// ];
-
-// GalleryPage.jsx
-const allSlides = [
+// ─── Единый список всех слайдов (экспортируется для AllGalleryPage) ───────────
+export const allSlides = [
   ...productCatalogSets.flatMap((p) =>
     (p.sample || []).map((s) => ({
       ...s,
-      // видео получают cat: "video", фото — cat: "sets"
       cat: s.type === "video" ? "video" : "sets",
     }))
   ),
@@ -155,11 +136,69 @@ const allSlides = [
   ),
 ];
 
+// ─── Страница конкретной галереи ──────────────────────────────────────────────
 export default function GalleryPage() {
-  const { type, id } = useParams();
-  const location = useLocation();
-
+  const location   = useLocation();
   const startIndex = location.state?.startIndex ?? 0;
 
   return <FilmGallery slides={allSlides} startIndex={startIndex} />;
 }
+// import { useParams, useLocation } from "react-router-dom";
+// import { useState } from "react";
+// import FilmGallery from "../FilmGallery";
+
+// import productCatalogSets from "../data/productCatalogSets";
+// import productCatalogRamps from "../data/productCatalogRamps";
+// import productCatalogSkateparks from "../data/productCatalogSkateparks";
+
+
+// // ВСЕ слайды из всех каталогов
+// // const allSlides = [
+// //   ...productCatalogSets,
+// //   ...productCatalogRamps,
+// //   ...productCatalogSkateparks,
+// // ].flatMap((p) => p.sample || []);
+
+// // const allSlides = [
+// //   ...productCatalogSets.flatMap((p) =>
+// //     (p.sample || []).map((s) => ({ ...s, cat: "sets" }))
+// //   ),
+// //   ...productCatalogRamps.flatMap((p) =>
+// //     (p.sample || []).map((s) => ({ ...s, cat: "ramps" }))
+// //   ),
+// //   ...productCatalogSkateparks.flatMap((p) =>
+// //     (p.sample || []).map((s) => ({ ...s, cat: "skateparks" }))
+// //   ),
+// // ];
+
+// // GalleryPage.jsx
+// const allSlides = [
+//   ...productCatalogSets.flatMap((p) =>
+//     (p.sample || []).map((s) => ({
+//       ...s,
+//       // видео получают cat: "video", фото — cat: "sets"
+//       cat: s.type === "video" ? "video" : "sets",
+//     }))
+//   ),
+//   ...productCatalogRamps.flatMap((p) =>
+//     (p.sample || []).map((s) => ({
+//       ...s,
+//       cat: s.type === "video" ? "video" : "ramps",
+//     }))
+//   ),
+//   ...productCatalogSkateparks.flatMap((p) =>
+//     (p.sample || []).map((s) => ({
+//       ...s,
+//       cat: s.type === "video" ? "video" : "skateparks",
+//     }))
+//   ),
+// ];
+
+// export default function GalleryPage() {
+//   const { type, id } = useParams();
+//   const location = useLocation();
+
+//   const startIndex = location.state?.startIndex ?? 0;
+
+//   return <FilmGallery slides={allSlides} startIndex={startIndex} />;
+// }

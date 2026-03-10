@@ -302,11 +302,59 @@
 //   );
 // }
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import FullscreenGallery from "./FullscreenGallery/FullscreenGallery";
 
-const THUMB_H = 68;   // вертикальная лента (десктоп)
-const THUMB_W = 96;   // горизонтальная лента (мобилка)
+const THUMB_H = 68;
+const THUMB_W = 96;
+
+// ─── Инжект глобальных стилей ─────────────────────────────────────────────────
+const STYLE_ID = "film-gallery-styles";
+if (typeof document !== "undefined" && !document.getElementById(STYLE_ID)) {
+  const s = document.createElement("style");
+  s.id = STYLE_ID;
+  s.textContent = `
+    @keyframes fg-spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes fg-enter {
+      from { opacity: 0; transform: scale(1.03); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes fg-slide-up {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fg-slide-left {
+      from { opacity: 0; transform: translateX(18px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fg-slide-down {
+      from { opacity: 0; transform: translateY(-18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fg-enter      { animation: fg-enter      0.45s cubic-bezier(0.16,1,0.3,1) both; }
+    .fg-slide-up   { animation: fg-slide-up    0.45s cubic-bezier(0.16,1,0.3,1) both; }
+    .fg-slide-left { animation: fg-slide-left  0.45s cubic-bezier(0.16,1,0.3,1) both; }
+    .fg-slide-down { animation: fg-slide-down  0.45s cubic-bezier(0.16,1,0.3,1) both; }
+  `;
+  document.head.appendChild(s);
+}
+
+// ─── Спиннер ──────────────────────────────────────────────────────────────────
+function Spinner() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center bg-neutral-950 z-10 pointer-events-none">
+      <div className="relative w-9 h-9">
+        <div className="absolute inset-0 rounded-full border-2 border-white/10" />
+        <div
+          className="absolute inset-0 rounded-full border-2 border-transparent border-t-white/70"
+          style={{ animation: "fg-spin 0.8s linear infinite" }}
+        />
+      </div>
+    </div>
+  );
+}
 
 // ─── Вертикальная лента (десктоп) ────────────────────────────────────────────
 function ThumbStripVertical({ slides, activeIndex, onSelect }) {
@@ -330,21 +378,22 @@ function ThumbStripVertical({ slides, activeIndex, onSelect }) {
     <div className="flex h-full select-none">
       <div
         ref={stripRef}
-        className="relative flex-1 overflow-y-auto bg-neutral-900 py-1 scrollbar-none"
+        className="relative flex-1 overflow-y-auto bg-neutral-900 py-1"
         style={{ scrollbarWidth: "none" }}
       >
-        {/* рамка-индикатор */}
+        {/* Рамка-индикатор */}
         <div
           ref={frameRef}
-          className="absolute left-0 right-0 h-[68px] border-2 border-yellow-400/90 rounded-sm pointer-events-none z-50 transition-transform duration-300"
+          className="absolute left-0 right-2 h-[68px] border-2 border-yellow-400/90 rounded-sm pointer-events-none z-50 transition-transform duration-300"
         />
-        <div className="flex flex-col gap-1">
+        {/* pr-2 — отступ от правого края */}
+        <div className="flex flex-col gap-1 pr-2">
           {slides.map((slide, i) => (
             <div
               key={i}
               onClick={() => onSelect(i)}
               className={`h-[68px] overflow-hidden cursor-pointer transition-opacity ${
-                i === activeIndex ? "opacity-100" : "opacity-50"
+                i === activeIndex ? "opacity-100" : "opacity-45 hover:opacity-75"
               }`}
             >
               {slide.type === "video" ? (
@@ -356,6 +405,7 @@ function ThumbStripVertical({ slides, activeIndex, onSelect }) {
                   src={slide.src}
                   className="w-full h-full object-cover"
                   loading="lazy"
+                  alt=""
                 />
               )}
             </div>
@@ -387,20 +437,22 @@ function ThumbStripHorizontal({ slides, activeIndex, onSelect }) {
   return (
     <div
       ref={stripRef}
-      className="relative overflow-x-auto bg-neutral-900 px-1"
+      className="relative overflow-x-auto bg-neutral-900"
       style={{
-        height: 60,
+        height: 64,
+        /* отступы по бокам чтобы первый/последний thumb не прилипали к краю */
+        paddingLeft: 12,
+        paddingRight: 12,
         scrollbarWidth: "none",
         WebkitOverflowScrolling: "touch",
       }}
     >
-      {/* рамка-индикатор */}
+      {/* Рамка-индикатор */}
       <div
         ref={frameRef}
-        className="absolute top-1 bottom-1 border-2 border-yellow-400/90 rounded-sm pointer-events-none z-50 transition-transform duration-300"
-        style={{ width: THUMB_W, left: 0 }}
+        className="absolute top-1.5 bottom-1.5 border-2 border-yellow-400/90 rounded-sm pointer-events-none z-50 transition-transform duration-300"
+        style={{ width: THUMB_W, left: 12 }}
       />
-
       <div
         className="flex gap-1 h-full"
         style={{ minWidth: slides.length * (THUMB_W + 4) }}
@@ -409,7 +461,7 @@ function ThumbStripHorizontal({ slides, activeIndex, onSelect }) {
           <div
             key={i}
             onClick={() => onSelect(i)}
-            className={`flex-shrink-0 overflow-hidden cursor-pointer transition-opacity`}
+            className="flex-shrink-0 overflow-hidden cursor-pointer transition-opacity"
             style={{
               width: THUMB_W,
               height: "100%",
@@ -425,6 +477,7 @@ function ThumbStripHorizontal({ slides, activeIndex, onSelect }) {
                 src={slide.src}
                 className="w-full h-full object-cover"
                 loading="lazy"
+                alt=""
               />
             )}
           </div>
@@ -437,6 +490,14 @@ function ThumbStripHorizontal({ slides, activeIndex, onSelect }) {
 // ─── Главный вид ──────────────────────────────────────────────────────────────
 function MainView({ slide, index, total }) {
   const videoRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [animKey, setAnimKey] = useState(0);
+
+  // Сбрасываем loading при каждой смене слайда
+  useEffect(() => {
+    setLoading(true);
+    setAnimKey((k) => k + 1);
+  }, [slide]);
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.play().catch(() => {});
@@ -445,7 +506,13 @@ function MainView({ slide, index, total }) {
   if (!slide) return null;
 
   return (
-    <div className="relative flex justify-center w-full h-full bg-neutral-950 overflow-hidden">
+    <div
+      key={animKey}
+      className="fg-enter relative flex justify-center w-full h-full bg-neutral-950 overflow-hidden"
+    >
+      {/* Лоадер — показывается пока изображение не загружено */}
+      {loading && <Spinner />}
+
       {slide.type === "video" ? (
         <video
           ref={videoRef}
@@ -455,25 +522,34 @@ function MainView({ slide, index, total }) {
           loop
           playsInline
           className="w-auto h-full object-contain"
+          onCanPlay={() => setLoading(false)}
         />
       ) : (
-        <img src={slide.src} className="w-auto h-full object-contain" />
+        <img
+          src={slide.src}
+          className="w-auto h-full object-contain"
+          style={{
+            opacity: loading ? 0 : 1,
+            transition: "opacity 0.35s ease",
+          }}
+          onLoad={() => setLoading(false)}
+          onError={() => setLoading(false)}
+          alt={slide.caption || ""}
+        />
       )}
 
-      {/* виньетка */}
+      {/* Виньетка */}
       <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.55)_100%)]" />
 
-      {/* подпись */}
+      {/* Подпись */}
       {slide.caption && (
-        <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-black/70 to-transparent">
-          <p className="text-white/90 futura text-bold">
-            {slide.caption}
-          </p>
+        <div className="fg-slide-up absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-black/70 to-transparent">
+          <p className="text-white/90 futura font-bold">{slide.caption}</p>
         </div>
       )}
 
-      {/* счётчик */}
-      <div className="absolute top-5 left-6 text-white/50 text-xs font-mono bg-black/30 px-3 py-1 rounded-full">
+      {/* Счётчик */}
+      <div className="fg-slide-down absolute top-5 left-6 text-white/50 text-xs font-mono bg-black/30 px-3 py-1 rounded-full">
         {String(index + 1).padStart(2, "0")} /{" "}
         {String(total).padStart(2, "0")}
       </div>
@@ -485,6 +561,7 @@ function MainView({ slide, index, total }) {
 export default function FilmGallery({ slides, startIndex = 0 }) {
   const [showGrid, setShowGrid]       = useState(false);
   const [activeIndex, setActiveIndex] = useState(startIndex);
+  const [mounted, setMounted]         = useState(false);
   const [isMobile, setIsMobile]       = useState(
     () => typeof window !== "undefined" && window.innerWidth < 768
   );
@@ -494,31 +571,39 @@ export default function FilmGallery({ slides, startIndex = 0 }) {
   const touchStartY  = useRef(null);
 
   const navigate = useNavigate();
-  const { type }  = useParams();
 
-  // закрыть галерею
-  const handleClose = useCallback(() => navigate(-1), [navigate]);
-
-  // ESC
+  // Триггер появления — одна RAF-задержка для CSS transition
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") handleClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [handleClose]);
+    const id = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
-  // resize
+  // Resize
   useEffect(() => {
     const fn = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", fn);
     return () => window.removeEventListener("resize", fn);
   }, []);
 
+  const handleClose = useCallback(() => navigate(-1), [navigate]);
+
+  // ESC и стрелки клавиатуры
   const goTo = useCallback(
     (idx) => setActiveIndex((idx + slides.length) % slides.length),
     [slides.length]
   );
 
-  // колесо мыши (десктоп)
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape")                              handleClose();
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") goTo(activeIndex + 1);
+      if (e.key === "ArrowLeft"  || e.key === "ArrowUp")   goTo(activeIndex - 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [handleClose, activeIndex, goTo]);
+
+  // Колесо мыши (десктоп)
   const handleWheel = useCallback(
     (e) => {
       e.preventDefault();
@@ -534,7 +619,7 @@ export default function FilmGallery({ slides, startIndex = 0 }) {
     return () => el.removeEventListener("wheel", handleWheel);
   }, [handleWheel, isMobile]);
 
-  // ── Свайп (мобилка) ────────────────────────────────────────────────────────
+  // Свайп (мобилка)
   const handleTouchStart = useCallback((e) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
@@ -545,7 +630,6 @@ export default function FilmGallery({ slides, startIndex = 0 }) {
       if (touchStartX.current === null) return;
       const dx = e.changedTouches[0].clientX - touchStartX.current;
       const dy = e.changedTouches[0].clientY - touchStartY.current;
-      // свайп только если горизонтальный
       if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
         goTo(activeIndex + (dx < 0 ? 1 : -1));
       }
@@ -564,12 +648,20 @@ export default function FilmGallery({ slides, startIndex = 0 }) {
     <div
       ref={containerRef}
       className="w-screen h-dvh flex flex-col bg-neutral-950 overflow-hidden"
+      style={{
+        opacity:    mounted ? 1 : 0,
+        transform:  mounted ? "scale(1)" : "scale(1.04)",
+        transition: "opacity 0.4s cubic-bezier(0.16,1,0.3,1), transform 0.4s cubic-bezier(0.16,1,0.3,1)",
+      }}
       onTouchStart={isMobile ? handleTouchStart : undefined}
       onTouchEnd={isMobile   ? handleTouchEnd   : undefined}
     >
-      {/* кнопки верхнего правого угла */}
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
-        {/* сетка */}
+      {/* ── Кнопки верхнего правого угла ── */}
+      <div
+        className="absolute top-4 right-4 z-50 flex items-center gap-2 fg-slide-down"
+        style={{ animationDelay: "0.18s" }}
+      >
+        {/* Открыть сетку */}
         <button
           onClick={() => setShowGrid(true)}
           aria-label="All photos"
@@ -588,7 +680,7 @@ export default function FilmGallery({ slides, startIndex = 0 }) {
           </svg>
         </button>
 
-        {/* закрыть */}
+        {/* Закрыть */}
         <button
           onClick={handleClose}
           aria-label="Закрыть галерею"
@@ -603,9 +695,9 @@ export default function FilmGallery({ slides, startIndex = 0 }) {
         </button>
       </div>
 
-      {/* ── Основная область (растягивается) ── */}
+      {/* ── Основная область ── */}
       <div className="flex flex-1 overflow-hidden min-h-0">
-        {/* главный вид */}
+        {/* Главный вид */}
         <div className="flex-1 relative">
           <MainView
             slide={slides[activeIndex]}
@@ -614,9 +706,12 @@ export default function FilmGallery({ slides, startIndex = 0 }) {
           />
         </div>
 
-        {/* вертикальная лента — только десктоп */}
+        {/* Вертикальная лента — только десктоп, с отступом от края */}
         {!isMobile && (
-          <div className="w-24 border-l border-neutral-800">
+          <div
+            className="w-28 border-l border-neutral-800 fg-slide-left"
+            style={{ animationDelay: "0.22s" }}
+          >
             <ThumbStripVertical
               slides={slides}
               activeIndex={activeIndex}
@@ -626,9 +721,12 @@ export default function FilmGallery({ slides, startIndex = 0 }) {
         )}
       </div>
 
-      {/* горизонтальная лента — только мобилка */}
+      {/* Горизонтальная лента — только мобилка */}
       {isMobile && (
-        <div className="flex-none border-t border-neutral-800">
+        <div
+          className="flex-none border-t border-neutral-800 fg-slide-up"
+          style={{ animationDelay: "0.22s" }}
+        >
           <ThumbStripHorizontal
             slides={slides}
             activeIndex={activeIndex}
@@ -637,7 +735,7 @@ export default function FilmGallery({ slides, startIndex = 0 }) {
         </div>
       )}
 
-      {/* оверлей-сетка */}
+      {/* Оверлей-сетка */}
       {showGrid && (
         <FullscreenGallery
           slides={slides}
