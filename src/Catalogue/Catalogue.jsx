@@ -12,7 +12,7 @@ const products = [
     // name: "фигуры и комплекты фигур которые вы сможете собрать своими руками, материал полностью размечен и подготовлен, так что вы сможете собрать фигуру без проблем по заранее подготовленному чертежу и обкатать её уже в считаные часы",
     category: "sets",
        name: "фiгури",
-    image: "/images/sets/box.png",
+    image: "/images/sets/box360/160yolobox1.png",
     hoverImage: ["/images/skateparks/park3.png", "/images/skateparks/park2.png"],
     description: "A bold design statement."
   },

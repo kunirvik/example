@@ -147,7 +147,7 @@
 
 const productCatalogSets = [
   {
-    id: 1,
+    id: 3,
     name: "diy box",
     image: "/images/sets/box.png",
     altImages: ["/images/sets/box1.png", "/images/sets/box3.png"],
