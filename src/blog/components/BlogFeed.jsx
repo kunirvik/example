@@ -21,17 +21,30 @@
 //     </Masonry>
 //   )
 // }
+// import BlogCard from "./BlogCard"
+
+// // 3-column masonry-style grid (CSS columns, no library needed)
+// export default function BlogFeed({ posts }) {
+//   if (!posts.length) return null
+
+//   return (
+//     <div
+//       className="grid gap-1"
+//       style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
+//     >
+//       {posts.map((post, index) => (
+//         <BlogCard key={post.id} post={post} index={index} />
+//       ))}
+//     </div>
+//   )
+// }
 import BlogCard from "./BlogCard"
 
-// 3-column masonry-style grid (CSS columns, no library needed)
 export default function BlogFeed({ posts }) {
   if (!posts.length) return null
 
   return (
-    <div
-      className="grid gap-1"
-      style={{ gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}
-    >
+    <div className="flex flex-col gap-6">
       {posts.map((post, index) => (
         <BlogCard key={post.id} post={post} index={index} />
       ))}
