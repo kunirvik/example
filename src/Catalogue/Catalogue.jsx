@@ -269,9 +269,8 @@ return (
       cursor-pointer flex justify-center items-center p-2 sm:p-4
       relative overflow-hidden transition-all duration-400 ease-in-out
 
-      ${products.length === 3 && index === 2
-        ? "md:col-span-2"
-        : ""}
+       ${products.length === 3 && index === 2 ? "md:col-span-2 md:h-[60vh]" : "md:h-[40vh]"}
+
 
       ${selectedProduct !== null
         ? selectedProduct === product.id
@@ -290,8 +289,7 @@ return (
           <img
             src={product.image}
             alt={product.name}
-            className={`w-full h-full object-contain transition-all duration-300
-    ${index === 2 ? "scale-200" : ""}`}
+            className="w-full h-full object-contain transition-all duration-300"
             onMouseMove={!isMobile ? (e) => handleMouseMove(e, product.id) : undefined}
             onMouseLeave={!isMobile ? handleMouseLeave : undefined} 
           />
