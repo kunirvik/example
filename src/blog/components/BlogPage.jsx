@@ -63,14 +63,62 @@
 // }
 import { useEffect, useState, useRef, useCallback, createContext, useContext } from "react"
 import BlogFeed from "./BlogFeed"
-import { HeroCard, CompactCard } from "./BlogCard"
+import { HeroCard } from "./BlogCard"
 import SocialButtons from "../../SocialButtons/SocialButtons"
 
-const PAGE_SIZE = 12
+const PAGE_SIZE = 15
 const TAGS = ["all", "live", "construction", "parkramps", "bmx", "skate"]
 
 export const PostsContext = createContext([])
 export function usePostsContext() { return useContext(PostsContext) }
+
+// ── Small sidebar post link ───────────────────────────────────────────────────
+
+function SidebarPostLink({ post, rank }) {
+  function getYoutubeID(url = "") {
+    const m = url.match(/(?:\?v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/)
+    return m ? m[1] : null
+  }
+  const youtubeId = post.url ? getYoutubeID(post.url) : null
+  const thumb = youtubeId
+    ? `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`
+    : post.cover || null
+
+  return (
+    <a href={`/blog/post/${post.id}`}
+      className="flex gap-2.5 py-2.5 border-b border-[#eee] last:border-0 group hover:bg-[#f7f7f7] -mx-3 px-3 transition-colors">
+      <div className="flex-shrink-0 w-16 h-11 bg-[#e0e0e0] overflow-hidden">
+        {thumb
+          ? <img src={thumb} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+          : <div className="w-full h-full flex items-center justify-center text-[#bbb] text-lg">✦</div>
+        }
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[12px] font-['Barlow_Condensed'] font-bold text-[#111] leading-tight group-hover:text-[#0066cc] transition-colors line-clamp-2">
+          {post.title}
+        </p>
+        <p className="text-[10px] text-[#999] font-['Barlow'] mt-0.5">{post.date}</p>
+      </div>
+    </a>
+  )
+}
+
+// ── Tag pill ──────────────────────────────────────────────────────────────────
+
+function TagPill({ tag, active, onClick }) {
+  return (
+    <button onClick={onClick}
+      className={`px-3 py-1 text-[12px] font-['Barlow'] font-semibold border transition-colors cursor-pointer ${
+        active
+          ? "bg-[#cc0000] text-white border-[#cc0000]"
+          : "bg-white text-[#333] border-[#ccc] hover:border-[#999] hover:bg-[#f5f5f5]"
+      }`}>
+      {tag === "all" ? "All" : tag}
+    </button>
+  )
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function BlogPage() {
   const API_URL = import.meta.env.VITE_API_URL
@@ -80,53 +128,58 @@ export default function BlogPage() {
   const [error, setError]         = useState(null)
   const [loading, setLoading]     = useState(true)
   const [activeTag, setActiveTag] = useState("all")
+  const [search, setSearch]       = useState("")
+  const [searchInput, setSearchInput] = useState("")
 
   const loaderRef = useRef(null)
 
-  const filtered = (activeTag === "all"
-    ? posts
-    : posts.filter(p => p.tags?.includes(activeTag))
-  ).sort((a, b) => new Date(b.date) - new Date(a.date))
+  const filtered = posts
+    .filter(p => activeTag === "all" || p.tags?.includes(activeTag))
+    .filter(p => !search || p.title?.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
 
-  const hero         = filtered[0] || null
-  const sidebarPosts = filtered.slice(1, 6)       // 5 compact posts in sidebar
-  const gridPosts    = filtered.slice(6, visible)  // rest in grid
-  const hasMore      = visible < filtered.length
+  const hero        = filtered[0] || null
+  const feedPosts   = filtered.slice(1, visible)
+  const hasMore     = visible < filtered.length
+  const latestPosts = posts.slice(0, 8)  // sidebar latest
 
   useEffect(() => {
     fetch(`${API_URL}/api/blog`)
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(data => setPosts(data))
-      .catch(() => setError("Не удалось загрузить блог"))
+      .catch(() => setError("Could not load blog"))
       .finally(() => setLoading(false))
   }, [])
 
-  useEffect(() => { setVisible(PAGE_SIZE) }, [activeTag])
+  useEffect(() => { setVisible(PAGE_SIZE) }, [activeTag, search])
 
   const handleObserver = useCallback((entries) => {
     if (entries[0].isIntersecting && hasMore) setVisible(v => v + PAGE_SIZE)
   }, [hasMore])
 
   useEffect(() => {
-    const observer = new IntersectionObserver(handleObserver, { threshold: 0.1 })
-    if (loaderRef.current) observer.observe(loaderRef.current)
-    return () => observer.disconnect()
+    const obs = new IntersectionObserver(handleObserver, { threshold: 0.1 })
+    if (loaderRef.current) obs.observe(loaderRef.current)
+    return () => obs.disconnect()
   }, [handleObserver])
 
-  // ── Loading ───────────────────────────────────────────────────────────────
+  function submitSearch(e) {
+    e.preventDefault()
+    setSearch(searchInput)
+  }
 
+  // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) return (
-    <div className="min-h-screen bg-[#111] flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-10 h-10 border-2 border-[#ff6b00] border-t-transparent rounded-full animate-spin" />
-        <span className="font-['Barlow_Condensed'] text-white/30 text-sm uppercase tracking-widest">Loading</span>
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-2 border-[#cc0000] border-t-transparent rounded-full animate-spin" />
+        <span className="font-['Barlow'] text-[#999] text-sm">Loading...</span>
       </div>
     </div>
   )
-
   if (error) return (
-    <div className="min-h-screen bg-[#111] flex items-center justify-center">
-      <p className="text-red-400 font-['Barlow']">{error}</p>
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <p className="text-red-600 font-['Barlow']">{error}</p>
     </div>
   )
 
@@ -135,112 +188,153 @@ export default function BlogPage() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
 
-        @keyframes pbFadeIn {
-          from { opacity: 0; transform: translateY(8px); }
-          to   { opacity: 1; transform: translateY(0); }
+        @keyframes pbRowIn {
+          from { opacity:0; transform:translateY(6px); }
+          to   { opacity:1; transform:translateY(0); }
         }
 
-        /* Thin scrollbar for dark theme */
-        * { scrollbar-width: thin; scrollbar-color: #333 transparent; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #ff6b00; }
+        * { box-sizing: border-box; }
       `}</style>
 
-      <div className="min-h-screen bg-[#111] text-white">
+      <div className="min-h-screen bg-[#f2f2f2]">
         <SocialButtons />
 
-        {/* ── Top nav strip ──────────────────────────────────────────────── */}
-        <div className="border-b border-white/10 bg-[#0d0d0d] sticky top-0 z-30">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center gap-1 overflow-x-auto py-0 scrollbar-none"
-              style={{ scrollbarWidth: "none" }}>
+        {/* ── Top bar ──────────────────────────────────────────────────────── */}
+        <div className="bg-[#1a1a1a] border-b-2 border-[#cc0000]">
+          <div className="max-w-[1200px] mx-auto px-4 h-11 flex items-center gap-4">
+            <h1 className="font-['Barlow_Condensed'] font-black text-white text-lg uppercase tracking-wider flex-shrink-0">
+              News
+            </h1>
+            <div className="h-4 w-px bg-white/20 flex-shrink-0" />
+            {/* Tag nav */}
+            <div className="flex gap-1 overflow-x-auto flex-1" style={{ scrollbarWidth:"none" }}>
               {TAGS.map(tag => (
-                <button
-                  key={tag}
-                  onClick={() => setActiveTag(tag)}
-                  className={`flex-shrink-0 px-4 py-3.5 text-[11px] font-['Barlow_Condensed'] font-black uppercase tracking-[0.15em] border-b-2 transition-all duration-150 cursor-pointer ${
+                <button key={tag} onClick={() => setActiveTag(tag)}
+                  className={`flex-shrink-0 px-3 py-1 text-[11px] font-['Barlow_Condensed'] font-black uppercase tracking-wide transition-colors cursor-pointer ${
                     activeTag === tag
-                      ? "border-[#ff6b00] text-[#ff6b00]"
-                      : "border-transparent text-white/40 hover:text-white hover:border-white/20"
-                  }`}
-                >
-                  {tag === "all" ? "All Posts" : tag}
+                      ? "bg-[#cc0000] text-white"
+                      : "text-white/50 hover:text-white hover:bg-white/10"
+                  }`}>
+                  {tag === "all" ? "All" : tag}
                 </button>
               ))}
-
-              <div className="ml-auto flex-shrink-0 pl-4 py-3 border-l border-white/10">
-                <span className="font-['Barlow'] text-white/20 text-[11px] uppercase tracking-wide">
-                  {filtered.length} posts
-                </span>
-              </div>
             </div>
+            {/* Search */}
+            <form onSubmit={submitSearch} className="flex-shrink-0 flex gap-0">
+              <input
+                value={searchInput}
+                onChange={e => setSearchInput(e.target.value)}
+                placeholder="Search News"
+                className="w-40 px-3 py-1 text-[12px] font-['Barlow'] bg-white border-0 outline-none text-[#333] placeholder-[#aaa]"
+              />
+              <button type="submit"
+                className="px-3 py-1 bg-[#555] hover:bg-[#333] text-white text-[11px] font-['Barlow'] font-bold transition-colors cursor-pointer">
+                Search
+              </button>
+            </form>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 pt-4 pb-16">
+        {/* ── Page body ────────────────────────────────────────────────────── */}
+        <div className="max-w-[1200px] mx-auto px-4 pt-4 pb-12">
+          <div className="flex gap-4 items-start">
 
-          {/* ── Hero + Sidebar layout ──────────────────────────────────── */}
-          {hero && (
-            <div className="flex gap-1 mb-1">
+            {/* ══ MAIN FEED ═════════════════════════════════════════════════ */}
+            <div className="flex-1 min-w-0">
 
-              {/* Hero — takes ~70% width on desktop */}
-              <div className="flex-1 min-w-0">
-                <HeroCard post={hero} />
-              </div>
-
-              {/* Sidebar — 5 compact posts */}
-              {sidebarPosts.length > 0 && (
-                <div className="w-[280px] flex-shrink-0 bg-[#161616] border border-white/[0.06] hidden lg:flex flex-col">
-                  <div className="px-3 py-2.5 border-b border-white/[0.06] flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 bg-[#ff6b00]" />
-                    <span className="font-['Barlow_Condensed'] font-black text-[11px] uppercase tracking-[0.18em] text-white/60">
-                      Latest
-                    </span>
-                  </div>
-                  <div className="px-2 flex-1 overflow-hidden">
-                    {sidebarPosts.map((post, i) => (
-                      <CompactCard key={post.id} post={post} index={i} />
-                    ))}
-                  </div>
+              {/* Active filter indicator */}
+              {(activeTag !== "all" || search) && (
+                <div className="flex items-center gap-2 mb-3 bg-white border border-[#e0e0e0] px-3 py-2">
+                  <span className="text-[12px] font-['Barlow'] text-[#555]">
+                    {search ? `Results for "${search}"` : `Category: ${activeTag}`}
+                    {" "}· {filtered.length} post{filtered.length !== 1 ? "s" : ""}
+                  </span>
+                  <button
+                    onClick={() => { setActiveTag("all"); setSearch(""); setSearchInput("") }}
+                    className="ml-auto text-[11px] text-[#cc0000] font-['Barlow'] font-bold hover:underline cursor-pointer">
+                    Clear ✕
+                  </button>
                 </div>
               )}
-            </div>
-          )}
 
-          {/* ── Section divider ─────────────────────────────────────────── */}
-          {gridPosts.length > 0 && (
-            <div className="flex items-center gap-3 mb-3 mt-6">
-              <div className="w-1 h-5 bg-[#ff6b00]" />
-              <span className="font-['Barlow_Condensed'] font-black text-[11px] uppercase tracking-[0.2em] text-white/50">
-                More Posts
-              </span>
-              <div className="flex-1 h-px bg-white/[0.06]" />
-            </div>
-          )}
+              {/* Hero post */}
+              {hero && (
+                <div className="bg-white border border-[#e0e0e0] mb-1 shadow-sm">
+                  <HeroCard post={hero} />
+                </div>
+              )}
 
-          {/* ── Main grid ───────────────────────────────────────────────── */}
-          <BlogFeed posts={gridPosts} />
-
-          {/* ── Infinite scroll sentinel ────────────────────────────────── */}
-          <div ref={loaderRef} className="h-16 flex items-center justify-center mt-6">
-            {hasMore && (
-              <div className="flex items-center gap-3">
-                <div className="h-px w-16 bg-white/10" />
-                <span className="font-['Barlow_Condensed'] text-white/20 text-xs uppercase tracking-widest animate-pulse">
-                  Loading more
-                </span>
-                <div className="h-px w-16 bg-white/10" />
+              {/* Feed */}
+              <div className="bg-white border border-[#e0e0e0] shadow-sm">
+                <BlogFeed posts={feedPosts} />
               </div>
-            )}
-          </div>
 
+              {/* Infinite scroll sentinel */}
+              <div ref={loaderRef} className="h-10 flex items-center justify-center mt-4">
+                {hasMore && (
+                  <div className="flex items-center gap-3">
+                    <div className="h-px w-12 bg-[#ccc]" />
+                    <span className="font-['Barlow'] text-[#aaa] text-xs animate-pulse">Loading more…</span>
+                    <div className="h-px w-12 bg-[#ccc]" />
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+            {/* ══ SIDEBAR ═══════════════════════════════════════════════════ */}
+            <aside className="w-[260px] flex-shrink-0 hidden lg:flex flex-col gap-3 sticky top-4">
+
+              {/* Latest posts */}
+              <div className="bg-white border border-[#e0e0e0] shadow-sm">
+                <div className="bg-[#1a1a1a] px-3 py-2 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-[#cc0000]" />
+                  <span className="font-['Barlow_Condensed'] font-black text-white text-[11px] uppercase tracking-widest">
+                    Latest Posts
+                  </span>
+                </div>
+                <div className="px-3 py-1">
+                  {latestPosts.map((p, i) => (
+                    <SidebarPostLink key={p.id} post={p} rank={i + 1} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Tag cloud */}
+              <div className="bg-white border border-[#e0e0e0] shadow-sm">
+                <div className="bg-[#1a1a1a] px-3 py-2 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-[#cc0000]" />
+                  <span className="font-['Barlow_Condensed'] font-black text-white text-[11px] uppercase tracking-widest">
+                    Categories
+                  </span>
+                </div>
+                <div className="p-3 flex flex-wrap gap-1.5">
+                  {TAGS.filter(t => t !== "all").map(tag => (
+                    <TagPill key={tag} tag={tag} active={activeTag === tag}
+                      onClick={() => setActiveTag(activeTag === tag ? "all" : tag)} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="bg-white border border-[#e0e0e0] shadow-sm px-4 py-3">
+                <p className="font-['Barlow'] text-[12px] text-[#999]">
+                  <span className="font-bold text-[#111] text-base">{posts.length}</span> total posts
+                </p>
+                {activeTag !== "all" && (
+                  <p className="font-['Barlow'] text-[12px] text-[#999] mt-1">
+                    <span className="font-bold text-[#cc0000]">{filtered.length}</span> in #{activeTag}
+                  </p>
+                )}
+              </div>
+
+            </aside>
+          </div>
         </div>
       </div>
     </PostsContext.Provider>
   )
 }
-
 
 // import { useEffect, useState, useRef, useCallback } from "react"
 // import BlogFeed from "./BlogFeed"
