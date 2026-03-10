@@ -5,6 +5,8 @@
 //   image: "/images/sets/box.png",
 //   altImages: ["/images/sets/box1.png", "/images/sets/box3.png"],
 
+import { scale } from "framer-motion";
+
 //   sample: [
 //     { type: "image", src: "/images/sample/grindbox2.webp", caption: "підпис 1" },
 //     { type: "image", src: "/images/sample/grindbox.webp", caption: "підпис 2" },
@@ -150,6 +152,7 @@ const productCatalogSets = [
     id: 3,
     name: "diy box",
     image: "/images/sets/box.png",
+    scale:0.75,
     altImages: ["/images/sets/box1.png", "/images/sets/box3.png"],
     sample: [
       { type: "image", src: "/images/sample/grindbox2.webp", caption: "підпис 1" },
@@ -187,6 +190,8 @@ const productCatalogSets = [
         caption: "підпис",
       },
     ],
+      
+
     year: 2024,
     description2: "Професійний флайбокс...",
     description: "Пиши нам у месенджер...",
@@ -201,6 +206,8 @@ const productCatalogSets = [
       "/images/sets/quaterr215h80w125d40left.png",
       "/images/sets/quaterr215h80w125d40top.png",
     ],
+    scale:0.75,
+
     sample: [
       { type: "image", src: "/images/sample/quater.webp", caption: "підпис 1" },
       { type: "image", src: "/images/sample/box.webp", caption: "підпис 2" },

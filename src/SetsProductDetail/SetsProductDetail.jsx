@@ -801,10 +801,13 @@ export default function SetsProductDetail() {
                     left: 0,
                     visibility: "visible",
                     pointerEvents: "none",
+                    
                   }}
                 />
               </div>
             )}
+
+  
 
             {/* ── Swiper галерея ───────────────────────────────────────── */}
             <div
@@ -846,7 +849,7 @@ export default function SetsProductDetail() {
                     }}
                   >
                     {productCatalogSets.map((product, index) => (
-                      <SwiperSlide key={product.id} style={{ height: "100%" }}>
+                      <SwiperSlide key={product.id} style={{ height: "100%", transform: `scale(${product.scale || 1})` }}>
                         <div className="w-full h-full flex items-center justify-center">
                           <img
                             src={
