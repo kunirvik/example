@@ -796,7 +796,6 @@ export default function SetsProductDetail() {
                   alt={currentProduct.name}
                   className="object-contain"
                   style={{
-                    scale: 2,
                     position: "absolute",
                     top: 0,
                     left: 0,
