@@ -268,9 +268,8 @@ return (
     className={`
       cursor-pointer flex justify-center items-center p-2 sm:p-4
       relative overflow-hidden transition-all duration-400 ease-in-out
-
-       ${products.length === 3 && index === 2 ? "md:col-span-2 md:h-[60vh]" : "md:h-[40vh]"}
-
+"md:col-span-2 md:h-[60vh]"
+       
 
       ${selectedProduct !== null
         ? selectedProduct === product.id
