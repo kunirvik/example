@@ -217,7 +217,7 @@ const productCatalogSets = [
   {
     id: 6,
     name: "vertwall",
-    image: "/images/sets/quaterr215h80w125d40.png",
+    image: "/images/sets/quaterwall.jpg",
     altImages: [
       "/images/sets/quaterr215h80w125d40left.png",
       "/images/sets/quaterr215h80w125d40top.png",
