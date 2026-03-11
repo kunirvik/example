@@ -278,11 +278,18 @@ function PostForm({ initial = {}, onSave, onCancel, loading }) {
     tags:    [],
     cover:   "",
     url:     "",
+    videos:  [],
+    photos:  [],
     ...initial,
-    tags: initial.tags || [],
+    tags:   initial.tags   || [],
+    videos: initial.videos || [],
+    photos: initial.photos || [],
   })
-  const [uploading, setUploading] = useState(false)
-  const fileRef    = useRef()
+  const [uploading, setUploading]         = useState(false)
+  const [uploadingExtra, setUploadingExtra] = useState(false)
+  const fileRef      = useRef()
+  const videosRef    = useRef()
+  const photosRef    = useRef()
 
   // Refs for emoji insert
   const titleRef   = useRef()
@@ -306,19 +313,25 @@ function PostForm({ initial = {}, onSave, onCancel, loading }) {
     }
   }
 
-  async function uploadFile(file) {
-    setUploading(true)
+  async function uploadFile(file, target = "cover") {
+    target === "cover" ? setUploading(true) : setUploadingExtra(true)
     try {
       const data = new FormData()
       data.append("file", file)
       const res  = await fetch(`${API_URL}/api/upload`, { method: "POST", headers: headers(), body: data })
       const json = await res.json()
-      if (file.type.startsWith("video")) set("video", json.url)
-      else set("cover", json.url)
+      if (target === "cover") {
+        if (file.type.startsWith("video")) set("video", json.url)
+        else set("cover", json.url)
+      } else if (target === "videos") {
+        set("videos", [...(form.videos || []), json.url])
+      } else if (target === "photos") {
+        set("photos", [...(form.photos || []), json.url])
+      }
     } catch (e) {
       alert("Ошибка загрузки: " + e.message)
     } finally {
-      setUploading(false)
+      target === "cover" ? setUploading(false) : setUploadingExtra(false)
     }
   }
 
@@ -388,7 +401,7 @@ function PostForm({ initial = {}, onSave, onCancel, loading }) {
             {uploading ? "⏳" : "📎 Загрузить"}
           </button>
           <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden"
-            onChange={e => e.target.files[0] && uploadFile(e.target.files[0])} />
+            onChange={e => e.target.files[0] && uploadFile(e.target.files[0], "cover")} />
         </div>
         {form.cover && <img src={form.cover} className="mt-2 h-24 object-cover rounded-lg" />}
       </div>
@@ -400,6 +413,109 @@ function PostForm({ initial = {}, onSave, onCancel, loading }) {
           className="mt-1 w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
           value={form.url || ""} onChange={e => set("url", e.target.value)}
           placeholder="https://youtu.be/..." />
+      </div>
+
+      {/* ── Дополнительные видео ── */}
+      <div>
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+          Дополнительные видео
+          <span className="ml-1 text-zinc-300 normal-case font-normal">(mp4, YouTube, Rumble)</span>
+        </label>
+        <div className="mt-1 space-y-1.5">
+          {(form.videos || []).map((v, i) => (
+            <div key={i} className="flex gap-2 items-center">
+              <input
+                className="flex-1 border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                value={v}
+                onChange={e => {
+                  const arr = [...form.videos]
+                  arr[i] = e.target.value
+                  set("videos", arr)
+                }}
+                placeholder="URL видео"
+              />
+              <button type="button"
+                onClick={() => set("videos", form.videos.filter((_, j) => j !== i))}
+                className="w-8 h-9 flex items-center justify-center border border-red-200 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 rounded-lg text-sm transition-all cursor-pointer flex-shrink-0">
+                ✕
+              </button>
+            </div>
+          ))}
+          <div className="flex gap-2">
+            <button type="button"
+              onClick={() => set("videos", [...(form.videos || []), ""])}
+              className="flex-1 py-2 border border-dashed border-zinc-300 rounded-lg text-xs text-zinc-400 hover:border-zinc-500 hover:text-zinc-600 transition-all cursor-pointer">
+              + Добавить URL видео
+            </button>
+            <button type="button"
+              onClick={() => videosRef.current.click()}
+              disabled={uploadingExtra}
+              className="px-3 py-2 border border-zinc-200 rounded-lg text-sm hover:bg-zinc-50 transition whitespace-nowrap cursor-pointer disabled:opacity-50">
+              {uploadingExtra ? "⏳" : "📎 Загрузить"}
+            </button>
+            <input ref={videosRef} type="file" accept="video/*" className="hidden" multiple
+              onChange={e => {
+                [...e.target.files].forEach(f => uploadFile(f, "videos"))
+                e.target.value = ""
+              }} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Дополнительные фото ── */}
+      <div>
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+          Дополнительные фото
+        </label>
+        <div className="mt-1 space-y-1.5">
+          {(form.photos || []).map((p, i) => (
+            <div key={i} className="flex gap-2 items-center">
+              <input
+                className="flex-1 border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                value={p}
+                onChange={e => {
+                  const arr = [...form.photos]
+                  arr[i] = e.target.value
+                  set("photos", arr)
+                }}
+                placeholder="URL фото"
+              />
+              <img src={p} onError={e => e.target.style.display="none"}
+                className="w-10 h-9 object-cover rounded border border-zinc-100 flex-shrink-0" />
+              <button type="button"
+                onClick={() => set("photos", form.photos.filter((_, j) => j !== i))}
+                className="w-8 h-9 flex items-center justify-center border border-red-200 text-red-400 hover:bg-red-500 hover:text-white hover:border-red-500 rounded-lg text-sm transition-all cursor-pointer flex-shrink-0">
+                ✕
+              </button>
+            </div>
+          ))}
+          <div className="flex gap-2">
+            <button type="button"
+              onClick={() => set("photos", [...(form.photos || []), ""])}
+              className="flex-1 py-2 border border-dashed border-zinc-300 rounded-lg text-xs text-zinc-400 hover:border-zinc-500 hover:text-zinc-600 transition-all cursor-pointer">
+              + Добавить URL фото
+            </button>
+            <button type="button"
+              onClick={() => photosRef.current.click()}
+              disabled={uploadingExtra}
+              className="px-3 py-2 border border-zinc-200 rounded-lg text-sm hover:bg-zinc-50 transition whitespace-nowrap cursor-pointer disabled:opacity-50">
+              {uploadingExtra ? "⏳" : "📎 Загрузить"}
+            </button>
+            <input ref={photosRef} type="file" accept="image/*" className="hidden" multiple
+              onChange={e => {
+                [...e.target.files].forEach(f => uploadFile(f, "photos"))
+                e.target.value = ""
+              }} />
+          </div>
+          {(form.photos || []).length > 0 && (
+            <div className="flex gap-2 flex-wrap mt-1">
+              {form.photos.map((p, i) => (
+                <img key={i} src={p} onError={e => e.target.style.display="none"}
+                  className="h-16 w-24 object-cover rounded-lg border border-zinc-100" />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Краткое описание ── */}
