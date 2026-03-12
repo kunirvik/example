@@ -597,7 +597,7 @@ export default function AdminPage() {
   const [authed, setAuthed]   = useState(false)
   const [keyInput, setKeyInput] = useState("")
 
-  useEffect(() => { if (ADMIN_KEY) setAuthed(true) }, [])
+  // useEffect(() => { if (ADMIN_KEY) setAuthed(true) }, [])
 
   useEffect(() => { if (authed) loadPosts() }, [authed])
 
