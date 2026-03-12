@@ -108,14 +108,18 @@
 //   /gallery/:type/:id  →  FilmGallery (конкретный продукт, startIndex из state)
 //   /gallery/all        →  AllGalleryPage (общая галерея-сетка всех фото)
 
-import { useParams, useLocation } from "react-router-dom";
-import FilmGallery from "../FilmGallery";
-import productCatalogSets        from "../data/productCatalogSets";
-import productCatalogRamps       from "../data/productCatalogRamps";
-import productCatalogSkateparks  from "../data/productCatalogSkateparks";
+// GalleryPage.jsx
+// Маршрут: /gallery/:type/:id
+// Открывается из карточки продукта, показывает только слайды продуктов.
 
-// ─── Единый список всех слайдов (экспортируется для AllGalleryPage) ───────────
-export const allSlides = [
+import { useLocation } from "react-router-dom";
+import FilmGallery from "../FilmGallery/FilmGallery";
+import productCatalogSets       from "../data/productCatalogSets";
+import productCatalogRamps      from "../data/productCatalogRamps";
+import productCatalogSkateparks from "../data/productCatalogSkateparks";
+
+// ─── Слайды только из продуктов (для FilmGallery из карточки) ────────────────
+export const productSlides = [
   ...productCatalogSets.flatMap((p) =>
     (p.sample || []).map((s) => ({
       ...s,
@@ -136,12 +140,11 @@ export const allSlides = [
   ),
 ];
 
-// ─── Страница конкретной галереи ──────────────────────────────────────────────
 export default function GalleryPage() {
   const location   = useLocation();
   const startIndex = location.state?.startIndex ?? 0;
 
-  return <FilmGallery slides={allSlides} startIndex={startIndex} />;
+  return <FilmGallery slides={productSlides} startIndex={startIndex} />;
 }
 // import { useParams, useLocation } from "react-router-dom";
 // import { useState } from "react";

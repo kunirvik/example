@@ -1,38 +1,43 @@
 // AllGalleryPage.jsx
 // Маршрут: /gallery/all
 //
-// Отображает FullscreenGallery (сетку всех фото) как полноценную страницу.
-// При клике на фото переходит в FilmGallery с нужным startIndex.
+// Показывает FullscreenGallery (сетку) со ВСЕМИ фото:
+//   1. Слайды из продуктов (sample)
+//   2. Дополнительные фото из extraGallerySlides.js
+//
+// При клике на фото открывает FilmGallery поверх.
+// Кнопка «назад» в FilmGallery возвращает в сетку, не в историю браузера.
 
 import { useCallback, useState } from "react";
 import { useNavigate }           from "react-router-dom";
-import FullscreenGallery         from "./FullscreenGallery/FullscreenGallery";
-import FilmGallery               from "./FilmGallery";
-import { allSlides }             from "./GalleryPage/GalleryPage";
+import FullscreenGallery         from "../FullscreenGallery/FullscreenGallery";
+import FilmGallery               from "../FilmGallery/FilmGallery";
+import { productSlides }         from "../GalleryPage/GalleryPage";
+import extraGallerySlides        from "../data/extraGallerySlides";
+
+// ─── Мержим все источники ─────────────────────────────────────────────────────
+// Порядок: сначала фото из продуктов, потом extra.
+// Меняй порядок по желанию.
+const allSlides = [
+  ...productSlides,
+  ...extraGallerySlides,
+];
 
 export default function AllGalleryPage() {
-  const navigate  = useNavigate();
-  const [filmIndex, setFilmIndex] = useState(null); // null = показываем сетку
+  const navigate                    = useNavigate();
+  const [filmIndex, setFilmIndex]   = useState(null); // null = показываем сетку
 
-  const handleClose = useCallback(() => navigate(-1), [navigate]);
+  const handleClose       = useCallback(() => navigate(-1), [navigate]);
+  const handleSelectSlide = useCallback((idx) => setFilmIndex(idx), []);
+  const handleFilmClose   = useCallback(() => setFilmIndex(null), []);
 
-  // Пользователь кликнул на фото → открываем FilmGallery поверх
-  const handleSelectSlide = useCallback((idx) => {
-    setFilmIndex(idx);
-  }, []);
-
-  // Закрыть FilmGallery — вернуться в сетку
-  const handleFilmClose = useCallback(() => {
-    setFilmIndex(null);
-  }, []);
-
+  // Пользователь кликнул на фото в сетке → открываем FilmGallery
   if (filmIndex !== null) {
     return (
       <FilmGallery
         slides={allSlides}
         startIndex={filmIndex}
-        // Переопределяем кнопку «назад»: вместо navigate(-1) возвращаемся в сетку
-        onClose={handleFilmClose}
+        onClose={handleFilmClose}   // ← переопределяем кнопку «назад»
       />
     );
   }

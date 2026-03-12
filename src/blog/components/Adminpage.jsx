@@ -269,7 +269,7 @@ function Modal({ title, onClose, children }) {
 
 // ─── PostForm ─────────────────────────────────────────────────────────────────
 
-function PostForm({ initial = {}, onSave, onCancel, loading }) {
+function PostForm({ initial = {}, onSave, onCancel, onBump, loading }) {
   const [form, setForm] = useState({
     title:   "",
     content: "",
@@ -568,6 +568,13 @@ function PostForm({ initial = {}, onSave, onCancel, loading }) {
           className="flex-1 py-2.5 bg-zinc-900 text-white rounded-lg text-sm font-semibold hover:bg-zinc-700 transition disabled:opacity-40">
           {loading ? "Сохранение..." : "Сохранить"}
         </button>
+        {initial.id && onBump && (
+          <button type="button" onClick={() => onBump(initial.id)}
+            title="Поднять пост наверх ленты"
+            className="px-4 py-2.5 border border-zinc-200 rounded-lg text-sm hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition whitespace-nowrap">
+            ↑ Поднять
+          </button>
+        )}
         <button onClick={onCancel}
           className="px-6 py-2.5 border border-zinc-200 rounded-lg text-sm hover:bg-zinc-50 transition">
           Отмена
@@ -607,6 +614,11 @@ export default function AdminPage() {
     if (!confirm("Удалить пост?")) return
     await fetch(`${API_URL}/api/blog/${id}`, { method: "DELETE", headers: headers() })
     setPosts(p => p.filter(x => x.id !== id))
+  }
+
+  async function bumpPost(id) {
+    await fetch(`${API_URL}/api/blog/${id}/bump`, { method: "POST", headers: headers() })
+    loadPosts()
   }
 
   async function savePost(form) {
@@ -687,7 +699,7 @@ export default function AdminPage() {
 
       {editing && (
         <Modal title="Редактировать пост" onClose={() => setEditing(null)}>
-          <PostForm initial={editing} onSave={savePost} onCancel={() => setEditing(null)} loading={saving} />
+          <PostForm initial={editing} onSave={savePost} onCancel={() => setEditing(null)} onBump={bumpPost} loading={saving} />
         </Modal>
       )}
       {creating && (

@@ -363,8 +363,8 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 // Только три активных категории. Добавляй новые сюда при необходимости.
 export const CAT_LABEL = {
   video:    "Video",
-  stroyka:  "Стройка",   // slide.cat = "stroyka"
-  figures:  "Фигуры",    // slide.cat = "figures"
+  stroyka:  "stroyka",   // slide.cat = "stroyka"
+  figures:  "3d models",    // slide.cat = "figures"
 };
 
 function getCat(slide) {
@@ -500,7 +500,7 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
             </button>
           ))}
 
-          {/* закрыть */}
+          {/* закрыть
           <button
             onClick={onClose}
             className="ml-2 w-8 h-8 rounded-full bg-black/8 hover:bg-black/15 flex items-center justify-center transition-colors"
@@ -511,7 +511,7 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
               <line x1="18" y1="6"  x2="6"  y2="18"/>
               <line x1="6"  y1="6"  x2="18" y2="18"/>
             </svg>
-          </button>
+          </button> */}
         </div>
       </header>
 
