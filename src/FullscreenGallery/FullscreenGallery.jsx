@@ -357,7 +357,7 @@
 // }
  
 
-iimport { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
  
 // ─── КАТЕГОРІЇ ─────────────────────────────────────────────────────────────
 export const CAT_LABEL = {
