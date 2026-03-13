@@ -65,15 +65,15 @@ import { useEffect, useState, useRef, useCallback, createContext, useContext } f
 import BlogFeed from "./BlogFeed"
 import { HeroCard } from "./BlogCard"
 import SocialButtons from "../../SocialButtons/SocialButtons"
-
+ 
 const PAGE_SIZE = 15
 const TAGS = ["all", "live", "construction", "parkramps", "bmx", "skate"]
-
+ 
 export const PostsContext = createContext([])
 export function usePostsContext() { return useContext(PostsContext) }
-
+ 
 // ── Small sidebar post link ───────────────────────────────────────────────────
-
+ 
 function SidebarPostLink({ post, rank }) {
   function getYoutubeID(url = "") {
     const m = url.match(/(?:\?v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/)
@@ -83,7 +83,7 @@ function SidebarPostLink({ post, rank }) {
   const thumb = youtubeId
     ? `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`
     : post.cover || null
-
+ 
   return (
     <a href={`/blog/post/${post.id}`}
       className="flex gap-2.5 py-2.5 border-b border-[#eee] last:border-0 group hover:bg-[#f7f7f7] -mx-3 px-3 transition-colors">
@@ -102,9 +102,9 @@ function SidebarPostLink({ post, rank }) {
     </a>
   )
 }
-
+ 
 // ── Tag pill ──────────────────────────────────────────────────────────────────
-
+ 
 function TagPill({ tag, active, onClick }) {
   return (
     <button onClick={onClick}
@@ -117,12 +117,12 @@ function TagPill({ tag, active, onClick }) {
     </button>
   )
 }
-
+ 
 // ── Main page ─────────────────────────────────────────────────────────────────
-
+ 
 export default function BlogPage() {
   const API_URL = import.meta.env.VITE_API_URL
-
+ 
   const [posts, setPosts]         = useState([])
   const [visible, setVisible]     = useState(PAGE_SIZE)
   const [error, setError]         = useState(null)
@@ -130,19 +130,24 @@ export default function BlogPage() {
   const [activeTag, setActiveTag] = useState("all")
   const [search, setSearch]       = useState("")
   const [searchInput, setSearchInput] = useState("")
-
+ 
   const loaderRef = useRef(null)
-
+ 
   const filtered = posts
     .filter(p => activeTag === "all" || p.tags?.includes(activeTag))
     .filter(p => !search || p.title?.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-
+    .sort((a, b) => {
+      // updatedAt (bump) beats date — bumped posts float to top
+      const aTime = new Date(a.updatedAt || a.date)
+      const bTime = new Date(b.updatedAt || b.date)
+      return bTime - aTime
+    })
+ 
   const hero        = filtered[0] || null
   const feedPosts   = filtered.slice(1, visible)
   const hasMore     = visible < filtered.length
   const latestPosts = posts.slice(0, 8)  // sidebar latest
-
+ 
   useEffect(() => {
     fetch(`${API_URL}/api/blog`)
       .then(r => r.ok ? r.json() : Promise.reject())
@@ -150,24 +155,24 @@ export default function BlogPage() {
       .catch(() => setError("Could not load blog"))
       .finally(() => setLoading(false))
   }, [])
-
+ 
   useEffect(() => { setVisible(PAGE_SIZE) }, [activeTag, search])
-
+ 
   const handleObserver = useCallback((entries) => {
     if (entries[0].isIntersecting && hasMore) setVisible(v => v + PAGE_SIZE)
   }, [hasMore])
-
+ 
   useEffect(() => {
     const obs = new IntersectionObserver(handleObserver, { threshold: 0.1 })
     if (loaderRef.current) obs.observe(loaderRef.current)
     return () => obs.disconnect()
   }, [handleObserver])
-
+ 
   function submitSearch(e) {
     e.preventDefault()
     setSearch(searchInput)
   }
-
+ 
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) return (
     <div className="min-h-screen bg-white flex items-center justify-center">
@@ -182,23 +187,23 @@ export default function BlogPage() {
       <p className="text-red-600 font-['Barlow']">{error}</p>
     </div>
   )
-
+ 
   return (
     <PostsContext.Provider value={filtered}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
-
+ 
         @keyframes pbRowIn {
           from { opacity:0; transform:translateY(6px); }
           to   { opacity:1; transform:translateY(0); }
         }
-
+ 
         * { box-sizing: border-box; }
       `}</style>
-
+ 
       <div className="min-h-screen bg-[#f2f2f2]">
         <SocialButtons />
-
+ 
         {/* ── Top bar ──────────────────────────────────────────────────────── */}
         <div className="bg-[#1a1a1a] border-b-2 border-[#cc0000]">
           <div className="max-w-[1200px] mx-auto px-4 h-11 flex items-center gap-4">
@@ -234,14 +239,14 @@ export default function BlogPage() {
             </form>
           </div>
         </div>
-
+ 
         {/* ── Page body ────────────────────────────────────────────────────── */}
         <div className="max-w-[1200px] mx-auto px-4 pt-4 pb-12">
           <div className="flex gap-4 items-start">
-
+ 
             {/* ══ MAIN FEED ═════════════════════════════════════════════════ */}
             <div className="flex-1 min-w-0">
-
+ 
               {/* Active filter indicator */}
               {(activeTag !== "all" || search) && (
                 <div className="flex items-center gap-2 mb-3 bg-white border border-[#e0e0e0] px-3 py-2">
@@ -256,19 +261,19 @@ export default function BlogPage() {
                   </button>
                 </div>
               )}
-
+ 
               {/* Hero post */}
               {hero && (
                 <div className="bg-white border border-[#e0e0e0] mb-1 shadow-sm">
                   <HeroCard post={hero} />
                 </div>
               )}
-
+ 
               {/* Feed */}
               <div className="bg-white border border-[#e0e0e0] shadow-sm">
                 <BlogFeed posts={feedPosts} />
               </div>
-
+ 
               {/* Infinite scroll sentinel */}
               <div ref={loaderRef} className="h-10 flex items-center justify-center mt-4">
                 {hasMore && (
@@ -279,12 +284,12 @@ export default function BlogPage() {
                   </div>
                 )}
               </div>
-
+ 
             </div>
-
+ 
             {/* ══ SIDEBAR ═══════════════════════════════════════════════════ */}
             <aside className="w-[260px] flex-shrink-0 hidden lg:flex flex-col gap-3 sticky top-4">
-
+ 
               {/* Latest posts */}
               <div className="bg-white border border-[#e0e0e0] shadow-sm">
                 <div className="bg-[#1a1a1a] px-3 py-2 flex items-center gap-2">
@@ -299,7 +304,7 @@ export default function BlogPage() {
                   ))}
                 </div>
               </div>
-
+ 
               {/* Tag cloud */}
               <div className="bg-white border border-[#e0e0e0] shadow-sm">
                 <div className="bg-[#1a1a1a] px-3 py-2 flex items-center gap-2">
@@ -315,7 +320,7 @@ export default function BlogPage() {
                   ))}
                 </div>
               </div>
-
+ 
               {/* Stats */}
               <div className="bg-white border border-[#e0e0e0] shadow-sm px-4 py-3">
                 <p className="font-['Barlow'] text-[12px] text-[#999]">
@@ -327,7 +332,7 @@ export default function BlogPage() {
                   </p>
                 )}
               </div>
-
+ 
             </aside>
           </div>
         </div>
@@ -335,7 +340,6 @@ export default function BlogPage() {
     </PostsContext.Provider>
   )
 }
-
 // import { useEffect, useState, useRef, useCallback } from "react"
 // import BlogFeed from "./BlogFeed"
 // import SocialButtons from "../../SocialButtons/SocialButtons"

@@ -688,9 +688,9 @@
 import { useParams, useNavigate, Link, useLocation } from "react-router-dom"
 import { useEffect, useState, useCallback } from "react"
 import { usePostsContext } from "./BlogPage"
-
+ 
 // ─── SEO ─────────────────────────────────────────────────────────────────────
-
+ 
 function useSEO(post) {
   useEffect(() => {
     if (!post) return
@@ -698,7 +698,7 @@ function useSEO(post) {
     const site    = "THE BLOG"
     const siteUrl = window.location.origin
     const postUrl = `${siteUrl}/blog/post/${post.id}`
-
+ 
     let img = post.cover || null
     if (!img && post.url) {
       const m = post.url.match(/(?:\?v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/)
@@ -706,14 +706,14 @@ function useSEO(post) {
     }
     const desc = post.excerpt || `${post.title} — ${site}`
     document.title = `${post.title} | ${site}`
-
+ 
     const set = (name, content, attr = "name") => {
       if (!content) return
       let el = document.querySelector(`meta[${attr}="${name}"]`)
       if (!el) { el = document.createElement("meta"); el.setAttribute(attr, name); el.setAttribute("data-sei", "1"); document.head.appendChild(el) }
       el.setAttribute("content", content)
     }
-
+ 
     set("description", desc); set("keywords", (post.tags||[]).join(", "))
     set("og:type","article","property"); set("og:title",post.title,"property")
     set("og:description",desc,"property"); set("og:url",postUrl,"property")
@@ -721,22 +721,22 @@ function useSEO(post) {
     set("twitter:card", img ? "summary_large_image" : "summary")
     set("twitter:title", post.title); set("twitter:description", desc)
     if (img) set("twitter:image", img)
-
+ 
     let c = document.querySelector('link[rel="canonical"]')
     if (!c) { c = document.createElement("link"); c.setAttribute("rel","canonical"); c.setAttribute("data-sei","1"); document.head.appendChild(c) }
     c.setAttribute("href", postUrl)
-
+ 
     const ld = document.createElement("script")
     ld.type = "application/ld+json"; ld.setAttribute("data-sei","1")
     ld.textContent = JSON.stringify({ "@context":"https://schema.org","@type":"Article","headline":post.title,"description":desc,"url":postUrl,"datePublished":post.date?new Date(post.date).toISOString():undefined,"keywords":(post.tags||[]).join(", "),"publisher":{"@type":"Organization","name":site,"url":siteUrl},...(img?{image:{"@type":"ImageObject","url":img}}:{}) })
     document.head.appendChild(ld)
-
+ 
     return () => { document.title = prev; document.querySelectorAll("[data-sei]").forEach(e=>e.remove()) }
   }, [post])
 }
-
+ 
 // ─── URL helpers ──────────────────────────────────────────────────────────────
-
+ 
 function getYoutubeID(url = "") {
   const m = url.match(/(?:\?v=|\/embed\/|\.be\/)([a-zA-Z0-9_-]{11})/)
   return m ? m[1] : null
@@ -763,9 +763,9 @@ function buildMediaList(post) {
   post.videos?.forEach(u => push(u))
   return items
 }
-
+ 
 // ─── Media embed ──────────────────────────────────────────────────────────────
-
+ 
 function MediaEmbed({ item }) {
   if (!item) return null
   if (item.type === "image") return (
@@ -794,16 +794,16 @@ function MediaEmbed({ item }) {
   )
   return null
 }
-
+ 
 // ─── Related post card ────────────────────────────────────────────────────────
-
+ 
 function RelatedCard({ post }) {
   const location  = useLocation()
   const youtubeId = post.url ? getYoutubeID(post.url) : null
   const thumb     = youtubeId
     ? `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`
     : post.cover || null
-
+ 
   return (
     <Link to={`/blog/post/${post.id}`} state={{ background: location }}
       className="group block bg-[#1a1a1a] border border-white/[0.06] hover:border-[#ff6b00]/50 overflow-hidden transition-colors duration-150">
@@ -834,16 +834,16 @@ function RelatedCard({ post }) {
     </Link>
   )
 }
-
+ 
 // ─── Prev / Next nav ──────────────────────────────────────────────────────────
-
+ 
 function PostNav({ post, direction }) {
   const location  = useLocation()
   const youtubeId = post.url ? getYoutubeID(post.url) : null
   const thumb     = youtubeId
     ? `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`
     : post.cover || null
-
+ 
   return (
     <Link to={`/blog/post/${post.id}`} state={{ background: location }}
       className="group flex items-center gap-3 bg-[#1a1a1a] border border-white/[0.06] hover:border-[#ff6b00]/50 p-3 transition-colors duration-150 flex-1 min-w-0">
@@ -865,7 +865,7 @@ function PostNav({ post, direction }) {
     </Link>
   )
 }
-
+ 
 function mediaThumb(item) {
   if (item.type === "youtube") return `https://img.youtube.com/vi/${getYoutubeID(item.url)}/hqdefault.jpg`
   if (item.type === "image")   return item.url
@@ -878,27 +878,54 @@ function mediaLabel(item) {
   return "IMG"
 }
 function isVideo(t) { return t === "youtube" || t === "mp4" || t === "rumble" }
-
+ 
+// ─── Last-viewed tracker ──────────────────────────────────────────────────────
+// Сохраняет timestamp последнего открытия поста.
+// Возвращает флаг isUpdated — true если пост обновился с последнего визита.
+ 
+function useLastViewed(postId, postUpdatedAt) {
+  const key = `lv_${postId}`
+  const [isUpdated, setIsUpdated] = useState(false)
+ 
+  useEffect(() => {
+    if (!postId) return
+    try {
+      const last = parseInt(localStorage.getItem(key) || "0", 10)
+      const updatedTs = postUpdatedAt ? new Date(postUpdatedAt).getTime() : 0
+      // Показываем бейдж только если пост реально обновлялся (updatedAt > date) и юзер уже видел его раньше
+      if (last > 0 && updatedTs > 0 && updatedTs > last) {
+        setIsUpdated(true)
+      }
+    } catch {}
+    // Записываем текущее время как lastViewed
+    try { localStorage.setItem(key, Date.now().toString()) } catch {}
+  }, [postId, postUpdatedAt])
+ 
+  return isUpdated
+}
+ 
 // ─── Main component ───────────────────────────────────────────────────────────
-
+ 
 export default function BlogPostModal() {
   const { id }     = useParams()
   const navigate   = useNavigate()
   const API_URL    = import.meta.env.VITE_API_URL
   const allPosts   = usePostsContext()
-
+ 
   const [post, setPost]         = useState(null)
   const [loading, setLoading]   = useState(true)
   const [activeMedia, setActive] = useState(0)
-
+ 
   const idx      = allPosts.findIndex(p => p.id === id)
   const prevPost = idx > 0               ? allPosts[idx - 1] : null
   const nextPost = idx < allPosts.length - 1 ? allPosts[idx + 1] : null
   const related  = allPosts.filter(p => p.id !== id && p.tags?.some(t => post?.tags?.includes(t))).slice(0, 4)
   const morePosts = related.length ? related : allPosts.filter(p => p.id !== id).slice(0, 4)
-
+ 
+  const isUpdated = useLastViewed(post?.id, post?.updatedAt)
+ 
   useSEO(post)
-
+ 
   useEffect(() => {
     setLoading(true); setActive(0); setPost(null)
     window.scrollTo({ top: 0, behavior: "instant" })
@@ -908,7 +935,7 @@ export default function BlogPostModal() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [id])
-
+ 
   // Keyboard prev/next post
   const handleKey = useCallback((e) => {
     if (e.key === "ArrowLeft"  && prevPost) navigate(`/blog/post/${prevPost.id}`)
@@ -916,9 +943,9 @@ export default function BlogPostModal() {
     if (e.key === "Escape") navigate("/blog")
   }, [prevPost, nextPost])
   useEffect(() => { window.addEventListener("keydown", handleKey); return () => window.removeEventListener("keydown", handleKey) }, [handleKey])
-
+ 
   const mediaList = post ? buildMediaList(post) : []
-
+ 
   // ── Loading skeleton ───────────────────────────────────────────────────────
   if (loading) return (
     <div className="min-h-screen bg-[#111] flex items-center justify-center">
@@ -930,14 +957,14 @@ export default function BlogPostModal() {
       <p className="text-white/30 font-['Barlow_Condensed'] uppercase tracking-widest">Post not found</p>
     </div>
   )
-
+ 
   const NAV_H = 44 // px — top bar height
-
+ 
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
-
+ 
         .post-body { color:rgba(255,255,255,0.72); font-family:'Barlow',sans-serif; font-size:14px; line-height:1.72; }
         .post-body p  { margin-bottom:1em; }
         .post-body h2 { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:1.25rem; text-transform:uppercase; color:#fff; margin:1.4em 0 0.4em; }
@@ -948,33 +975,33 @@ export default function BlogPostModal() {
         .post-body li { margin-bottom:0.25em; }
         .post-body blockquote { border-left:3px solid #ff6b00; padding:0.5em 0.9em; margin:1em 0; background:rgba(255,107,0,0.07); color:rgba(255,255,255,0.55); font-style:italic; }
         .post-body hr { border:none; border-top:1px solid rgba(255,255,255,0.08); margin:1.3em 0; }
-
+ 
         .right-scroll { overflow-y:auto; scrollbar-width:thin; scrollbar-color:#2a2a2a transparent; }
         .right-scroll::-webkit-scrollbar { width:4px; }
         .right-scroll::-webkit-scrollbar-thumb { background:#2a2a2a; border-radius:2px; }
         .right-scroll::-webkit-scrollbar-thumb:hover { background:#ff6b00; }
-
+ 
         .thumb-strip { scrollbar-width:thin; scrollbar-color:#ff6b00 #1a1a1a; }
         .thumb-strip::-webkit-scrollbar { height:3px; }
         .thumb-strip::-webkit-scrollbar-thumb { background:#ff6b00; }
       `}</style>
-
+ 
       {/* ── Full-screen shell ───────────────────────────────────────────────── */}
       <div className="bg-[#111] text-white flex flex-col" style={{ height: "100dvh" }}>
-
+ 
         {/* ── Top nav bar (fixed height) ─────────────────────────────────── */}
         <div className="flex-shrink-0 bg-[#0d0d0d] border-b border-white/10 z-40"
           style={{ height: NAV_H }}>
           <div className="h-full px-4 flex items-center gap-3">
-
+ 
             <button onClick={() => navigate("/blog")}
               className="flex items-center gap-1.5 text-white/40 hover:text-[#ff6b00] transition-colors group cursor-pointer flex-shrink-0">
               <span className="text-base group-hover:-translate-x-0.5 transition-transform inline-block">←</span>
               <span className="font-['Barlow_Condensed'] font-bold text-[10px] uppercase tracking-[0.15em]">All Posts</span>
             </button>
-
+ 
             <span className="text-white/10 flex-shrink-0">|</span>
-
+ 
             {/* Tags */}
             <div className="flex gap-1.5 overflow-x-auto flex-1 min-w-0" style={{ scrollbarWidth:"none" }}>
               {post.tags?.map(t => (
@@ -986,7 +1013,7 @@ export default function BlogPostModal() {
                 {post.title}
               </span>
             </div>
-
+ 
             {/* Prev / Next post */}
             <div className="flex items-center gap-1 flex-shrink-0 ml-auto">
               {prevPost && (
@@ -1006,14 +1033,14 @@ export default function BlogPostModal() {
             </div>
           </div>
         </div>
-
+ 
         {/* ── Body: two panels side-by-side ─────────────────────────────── */}
         <div className="flex flex-1 min-h-0">
-
+ 
           {/* ══ LEFT PANEL — media ════════════════════════════════════════ */}
           <div className="flex flex-col bg-black border-r border-white/[0.07]"
             style={{ width: "58%", minWidth: 0 }}>
-
+ 
             {/* Active player — fills all available height minus strip */}
             <div className="flex-1 min-h-0 flex items-center justify-center bg-black overflow-hidden">
               {mediaList.length > 0
@@ -1026,7 +1053,7 @@ export default function BlogPostModal() {
                 )
               }
             </div>
-
+ 
             {/* Thumbnail strip (only when multiple) */}
             {mediaList.length > 1 && (
               <div className="flex-shrink-0 bg-[#0a0a0a] border-t-2 border-[#ff6b00]">
@@ -1062,6 +1089,10 @@ export default function BlogPostModal() {
                             </div>
                           </div>
                         )}
+                        {/* NEW dot — показываем на всех медиа если пост обновился */}
+                        {isUpdated && !isAct && (
+                          <div className="absolute top-1 right-1 w-2 h-2 bg-[#22c55e] rounded-full shadow-lg" />
+                        )}
                         {/* bottom label */}
                         <div className={`absolute bottom-0 left-0 right-0 px-1.5 py-0.5 ${isAct ? "bg-[#ff6b00]" : "bg-black/70"}`}>
                           <span className="font-['Barlow_Condensed'] font-black text-white text-[8px] uppercase tracking-wide">
@@ -1075,52 +1106,68 @@ export default function BlogPostModal() {
               </div>
             )}
           </div>
-
+ 
           {/* ══ RIGHT PANEL — text (independently scrollable) ════════════ */}
           <div className="right-scroll flex flex-col flex-1 min-w-0 min-h-0"
             style={{ overflowY: "auto" }}>
-
+ 
             <div className="p-5 flex flex-col gap-5 flex-1">
-
+ 
               {/* ── Article header ── */}
               <div className="pb-4 border-b border-white/10">
-                {/* Tags */}
-                <div className="flex flex-wrap gap-1.5 mb-3">
+                {/* Tags + UPDATED badge */}
+                <div className="flex flex-wrap gap-1.5 mb-3 items-center">
                   {post.tags?.map(t => (
                     <span key={t} className="bg-[#ff6b00] text-white text-[9px] font-black uppercase tracking-[0.18em] px-2 py-1">
                       {t}
                     </span>
                   ))}
+                  {isUpdated && (
+                    <span className="flex items-center gap-1 bg-[#22c55e] text-white text-[9px] font-black uppercase tracking-[0.18em] px-2 py-1 animate-pulse">
+                      ↑ Updated
+                    </span>
+                  )}
                 </div>
-
+ 
                 {/* Title */}
                 <h1 className="font-['Barlow_Condensed'] font-black text-white text-2xl xl:text-3xl uppercase leading-[1.04] tracking-tight mb-3">
                   {post.title}
                 </h1>
-
+ 
                 {/* Excerpt */}
                 {post.excerpt && (
                   <p className="text-white/50 font-['Barlow'] text-sm leading-relaxed border-l-2 border-[#ff6b00] pl-3 mb-3">
                     {post.excerpt}
                   </p>
                 )}
-
+ 
                 {/* Meta */}
                 <div className="flex flex-wrap items-center gap-3 text-[10px] font-['Barlow'] uppercase tracking-wide text-white/30">
                   <time>{post.date}</time>
                   {post.source && <><span className="w-0.5 h-0.5 bg-white/20 rounded-full" /><span>{post.source}</span></>}
                   {mediaList.length > 1 && <><span className="w-0.5 h-0.5 bg-white/20 rounded-full" /><span>{mediaList.length} media</span></>}
+                  {isUpdated && post.updatedAt && (
+                    <><span className="w-0.5 h-0.5 bg-white/20 rounded-full" />
+                    <span className="text-[#22c55e]">
+                      updated {new Date(post.updatedAt).toLocaleDateString("ru-RU")}
+                    </span></>
+                  )}
                 </div>
               </div>
-
+ 
               {/* ── Body ── */}
               <div className="flex-1">
+                {isUpdated && (
+                  <div className="mb-3 flex items-center gap-2 bg-[#22c55e]/10 border border-[#22c55e]/30 px-3 py-2">
+                    <span className="text-[#22c55e] text-[10px] font-black uppercase tracking-widest">↑ Пост обновлён — новый контент ниже</span>
+                  </div>
+                )}
                 {post.content
                   ? <div className="post-body" dangerouslySetInnerHTML={{ __html: post.content }} />
                   : <p className="text-white/15 font-['Barlow'] italic text-sm">— No body text —</p>
                 }
               </div>
-
+ 
               {/* ── Related posts ── */}
               {morePosts.length > 0 && (
                 <div className="pt-4 border-t border-white/10">
@@ -1136,7 +1183,7 @@ export default function BlogPostModal() {
                   </div>
                 </div>
               )}
-
+ 
               {/* ── Prev / Next ── */}
               {(prevPost || nextPost) && (
                 <div className="flex gap-2 pt-2">
@@ -1144,7 +1191,7 @@ export default function BlogPostModal() {
                   {nextPost && <PostNav post={nextPost} direction="next" />}
                 </div>
               )}
-
+ 
             </div>
           </div>
         </div>
