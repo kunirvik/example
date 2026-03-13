@@ -2,8 +2,8 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
  
-import FullscreenGallery from "../FullscreenGallery/FullscreenGallery";
-import FilmGallery       from "../FilmGallery";
+import FullscreenGallery from "./FullscreenGallery/FullscreenGallery";
+import FilmGallery       from "./FilmGallery";
  
 import productCatalogSets       from "../data/productCatalogSets";
 import productCatalogRamps      from "../data/productCatalogRamps";
