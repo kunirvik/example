@@ -5,9 +5,9 @@ import { useNavigate } from "react-router-dom";
 import FullscreenGallery from "./FullscreenGallery/FullscreenGallery";
 import FilmGallery       from "./FilmGallery";
  
-import productCatalogSets       from "../data/productCatalogSets";
-import productCatalogRamps      from "../data/productCatalogRamps";
-import productCatalogSkateparks from "../data/productCatalogSkateparks";
+import productCatalogSets       from "./data/productCatalogSets";
+import productCatalogRamps      from "./data/productCatalogRamps";
+import productCatalogSkateparks from "./data/productCatalogSkateparks";
  
 // ─── Додаткові слайди (не з sample) ────────────────────────────────────────
 // Додавай сюди будь-які фото/відео які хочеш показати у загальній галереї.
