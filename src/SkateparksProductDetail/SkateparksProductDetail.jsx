@@ -523,7 +523,7 @@ export default function SkateparksProductDetail() {
   // ─── Accordion ────────────────────────────────────────────────────────────
   const handleAccordionToggle = (type) => (index) => {
     if (type === "virobi") {
-      openGallery("sets", state.activeProductIndex);
+      openGallery("skateparks", state.activeProductIndex);
       setAccordionState((prev) => ({ ...prev, virobi: null }));
       return;
     }

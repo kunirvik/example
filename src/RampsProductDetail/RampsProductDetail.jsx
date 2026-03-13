@@ -523,7 +523,7 @@ export default function RampsProductDetail() {
   // ─── Accordion ────────────────────────────────────────────────────────────
   const handleAccordionToggle = (type) => (index) => {
     if (type === "virobi") {
-      openGallery("sets", state.activeProductIndex);
+      openGallery("ramps", state.activeProductIndex);
       setAccordionState((prev) => ({ ...prev, virobi: null }));
       return;
     }
