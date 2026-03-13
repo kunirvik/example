@@ -125,45 +125,28 @@ import productCatalogSkateparks from "../data/productCatalogSkateparks";
 // Це той самий порядок, що використовує useOpenGallery для розрахунку startIndex.
 export const productSlides = [
   ...productCatalogSets.flatMap((p) =>
-    (p.sample || []).map((s) => ({
-      ...s,
-      cat: s.type === "video" ? "video" : "sets",
-    }))
+    (p.sample || []).map((s) => ({ ...s, cat: s.type === "video" ? "video" : "sets" }))
   ),
   ...productCatalogRamps.flatMap((p) =>
-    (p.sample || []).map((s) => ({
-      ...s,
-      cat: s.type === "video" ? "video" : "ramps",
-    }))
+    (p.sample || []).map((s) => ({ ...s, cat: s.type === "video" ? "video" : "ramps" }))
   ),
   ...productCatalogSkateparks.flatMap((p) =>
-    (p.sample || []).map((s) => ({
-      ...s,
-      cat: s.type === "video" ? "video" : "skateparks",
-    }))
+    (p.sample || []).map((s) => ({ ...s, cat: s.type === "video" ? "video" : "skateparks" }))
   ),
 ];
  
-// ─── Компонент ───────────────────────────────────────────────────────────
 export default function GalleryPage() {
-  const location = useLocation();
- 
-  // startIndex передається з useOpenGallery через navigate("/gallery", { state: { startIndex } })
+  const location   = useLocation();
   const startIndex = location.state?.startIndex ?? 0;
  
-  // Захист: якщо startIndex виходить за межі — починаємо з початку
   const safeIndex = useMemo(
     () =>
-      Number.isFinite(startIndex) &&
-      startIndex >= 0 &&
-      startIndex < productSlides.length
+      Number.isFinite(startIndex) && startIndex >= 0 && startIndex < productSlides.length
         ? startIndex
         : 0,
     [startIndex]
   );
  
-  // onClose не передаємо → FilmGallery використовує navigate(-1) → назад на продукт
-  // handleOpenAllGallery у FilmGallery → navigate("/gallery/all") → загальна галерея
   return <FilmGallery slides={productSlides} startIndex={safeIndex} />;
 }
 // import { useParams, useLocation } from "react-router-dom";

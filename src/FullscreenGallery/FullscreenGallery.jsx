@@ -356,23 +356,38 @@
 //   );
 // }
  
+// FullscreenGallery.jsx
+//
+// Props:
+//   slides[]      — { src, type?, cat?, caption? }
+//   onClose       — () => void
+//   onSelectSlide — ({ slides, index }) => void
+//                   slides = відфільтрований масив (або всі якщо немає фільтра)
+//                   index  = позиція кліканого слайда у цьому наборі
+//
+// ─── ЯК ДОДАТИ СВОЮ КАТЕГОРІЮ ─────────────────────────────────────────────
+//   1. Додай ключ → назву в CAT_LABEL нижче
+//   2. При зборці слайдів постав slide.cat = "твоя_кат"
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
- 
+
 // ─── КАТЕГОРІЇ ─────────────────────────────────────────────────────────────
 export const CAT_LABEL = {
-  video:    "Video",
-  stroyka:  "stroyka",
-  figures:  "3d models",
+  sets:       "Sets",
+  ramps:      "Ramps",
+  skateparks: "Skateparks",
+  video:      "Video",
+  stroyka:    "Stroyka",
+  figures:    "3D Models",
 };
- 
+
 function getCat(slide) {
   if (slide.cat) return slide.cat;
   if (slide.type === "video") return "video";
   return null;
 }
- 
-// ─── Стилі (ін'єктуємо один раз) ──────────────────────────────────────────
+
+// ─── Стилі ─────────────────────────────────────────────────────────────────
 const STYLE_ID = "pyoshi-kf";
 if (typeof document !== "undefined" && !document.getElementById(STYLE_ID)) {
   const s = document.createElement("style");
@@ -388,14 +403,14 @@ if (typeof document !== "undefined" && !document.getElementById(STYLE_ID)) {
   `;
   document.head.appendChild(s);
 }
- 
-// ─── Константи ────────────────────────────────────────────────────────────
+
+// ─── Константи ─────────────────────────────────────────────────────────────
 const COL_W         = 148;
 const COL_GAP       = 4;
 const ITEMS_PER_COL = 6;
 const PARALLAX_MAX  = 20;
- 
-// ─── Підказка про скролл ──────────────────────────────────────────────────
+
+// ─── ScrollHint ────────────────────────────────────────────────────────────
 function ScrollHint() {
   const [visible, setVisible] = useState(true);
   useEffect(() => {
@@ -416,27 +431,28 @@ function ScrollHint() {
     </div>
   );
 }
- 
+
 // ─── Основний компонент ────────────────────────────────────────────────────
 export default function FullscreenGallery({ slides = [], onClose, onSelectSlide }) {
   const [hoveredCat, setHoveredCat] = useState(null);
+  // activeCat — постійний фільтр (клік по кнопці категорії)
+  const [activeCat,  setActiveCat]  = useState(null);
+
   const scrollRef = useRef(null);
   const colRefs   = useRef([]);
- 
-  // ESC закриває
+
   useEffect(() => {
     const fn = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", fn);
     return () => window.removeEventListener("keydown", fn);
   }, [onClose]);
- 
-  // Блокуємо скролл body
+
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, []);
- 
-  // Кількість слайдів по категоріях (тільки ті, що є в CAT_LABEL)
+
+  // Кількість по категоріях
   const catCounts = useMemo(() =>
     slides.reduce((acc, s) => {
       const c = getCat(s);
@@ -446,22 +462,27 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
       return acc;
     }, {}),
   [slides]);
- 
-  // Розбивка по колонках
+
+  // Відфільтровані елементи (зберігаємо globalIndex для ключів)
+  const filteredItems = useMemo(() => {
+    if (!activeCat) {
+      return slides.map((slide, i) => ({ slide, globalIndex: i }));
+    }
+    return slides
+      .map((slide, i) => ({ slide, globalIndex: i }))
+      .filter(({ slide }) => getCat(slide) === activeCat);
+  }, [slides, activeCat]);
+
+  // Колонки
   const columns = useMemo(() => {
     const cols = [];
-    for (let i = 0; i < slides.length; i += ITEMS_PER_COL) {
-      cols.push(
-        slides.slice(i, i + ITEMS_PER_COL).map((slide, j) => ({
-          slide,
-          globalIndex: i + j,
-        }))
-      );
+    for (let i = 0; i < filteredItems.length; i += ITEMS_PER_COL) {
+      cols.push(filteredItems.slice(i, i + ITEMS_PER_COL));
     }
     return cols;
-  }, [slides]);
- 
-  // Паралакс при горизонтальному скролі
+  }, [filteredItems]);
+
+  // Паралакс
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el || columns.length < 2) return;
@@ -475,56 +496,82 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
       col.style.transform = `translateY(${y.toFixed(2)}px)`;
     });
   }, [columns.length]);
- 
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
     el.addEventListener("scroll", handleScroll, { passive: true });
     return () => el.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
- 
-  const handleSelect = useCallback((idx) => {
-    onSelectSlide(idx);
+
+  // Клік на фото → передаємо відфільтрований масив + локальний індекс
+  const handleSelect = useCallback((localIndex) => {
+    const filteredSlides = filteredItems.map(({ slide }) => slide);
+    onSelectSlide({ slides: filteredSlides, index: localIndex });
     onClose();
-  }, [onSelectSlide, onClose]);
- 
-  const hoveredLabel = hoveredCat ? (CAT_LABEL[hoveredCat] ?? hoveredCat) : null;
- 
+  }, [filteredItems, onSelectSlide, onClose]);
+
+  // Toggle фільтра
+  const toggleCat = useCallback((cat) => {
+    setActiveCat(prev => prev === cat ? null : cat);
+    if (scrollRef.current) scrollRef.current.scrollLeft = 0;
+  }, []);
+
+  const displayCat   = activeCat || hoveredCat;
+  const displayLabel = displayCat ? (CAT_LABEL[displayCat] ?? displayCat) : null;
+
   return (
     <div className="fixed inset-0 z-[200] bg-[#e8e3db] flex flex-col overflow-hidden">
- 
+
       {/* ── Шапка ── */}
       <header className="flex-none flex items-center justify-between px-6 py-3 z-20 select-none">
         <span
           className="text-neutral-800 tracking-tight font-bold"
           style={{ fontFamily: "'Georgia', serif", fontSize: "clamp(1rem,2vw,1.4rem)" }}
         >
-          All Photos
+          {activeCat
+            ? `${CAT_LABEL[activeCat] ?? activeCat} (${catCounts[activeCat] ?? 0})`
+            : "All Photos"
+          }
         </span>
- 
-        <div className="flex items-center gap-5 flex-wrap justify-end">
-          {/* Кнопки категорій — тільки ті, у яких є слайди */}
+
+        <div className="flex items-center gap-4 flex-wrap justify-end">
+          {/* "All" — скидає фільтр */}
+          {activeCat && (
+            <button
+              onClick={() => { setActiveCat(null); if (scrollRef.current) scrollRef.current.scrollLeft = 0; }}
+              className="text-[11px] tracking-[0.15em] uppercase text-neutral-500 hover:text-neutral-900 transition-colors"
+            >
+              ← all
+            </button>
+          )}
+
+          {/* Кнопки категорій */}
           {Object.entries(catCounts).map(([cat, n]) => (
             <button
               key={cat}
-              onMouseEnter={() => setHoveredCat(cat)}
-              onMouseLeave={() => setHoveredCat(null)}
-              onClick={() => setHoveredCat(v => v === cat ? null : cat)}
-              className={`text-[11px] tracking-[0.15em] uppercase transition-colors duration-200 ${
-                hoveredCat === cat
-                  ? "text-neutral-900"
-                  : "text-neutral-400 hover:text-neutral-600"
-              }`}
+              onMouseEnter={() => !activeCat && setHoveredCat(cat)}
+              onMouseLeave={() => !activeCat && setHoveredCat(null)}
+              onClick={() => toggleCat(cat)}
+              className={`
+                text-[11px] tracking-[0.15em] uppercase transition-all duration-200
+                ${activeCat === cat
+                  ? "text-neutral-900 font-bold border-b border-neutral-800 pb-px"
+                  : hoveredCat === cat
+                    ? "text-neutral-700"
+                    : "text-neutral-400 hover:text-neutral-600"
+                }
+              `}
             >
               {CAT_LABEL[cat] ?? cat}
               <span className="ml-1 text-neutral-300 font-light">({n})</span>
             </button>
           ))}
- 
-          {/* ── Кнопка закрити ── */}
+
+          {/* Закрити */}
           <button
             onClick={onClose}
-            className="ml-2 w-8 h-8 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors"
+            className="ml-1 w-8 h-8 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors"
             aria-label="Close"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -535,7 +582,7 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
           </button>
         </div>
       </header>
- 
+
       {/* ── Горизонтальний скролл ── */}
       <div
         ref={scrollRef}
@@ -547,23 +594,29 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
         >
           {columns.map((col, colIdx) => (
             <div
-              key={colIdx}
+              key={`col-${activeCat ?? "all"}-${colIdx}`}
               ref={el => (colRefs.current[colIdx] = el)}
               className="flex flex-col gap-1 will-change-transform"
               style={{ width: COL_W, flexShrink: 0 }}
             >
-              {col.map(({ slide, globalIndex }) => {
-                const cat     = getCat(slide);
-                const isFaded = hoveredCat !== null && cat !== hoveredCat;
- 
+              {col.map(({ slide, globalIndex }, itemIdx) => {
+                const flatLocalIndex = colIdx * ITEMS_PER_COL + itemIdx;
+                const cat = getCat(slide);
+
+                // Затухання:
+                // - якщо activeCat → тільки та категорія яскрава, решта не відображається (вже відфільтровано)
+                // - якщо тільки hoveredCat → традиційне затухання
+                const isFaded =
+                  !activeCat && hoveredCat !== null && cat !== hoveredCat;
+
                 return (
                   <div
                     key={globalIndex}
                     className="py-card overflow-hidden cursor-pointer relative group flex-shrink-0"
-                    style={{ animationDelay: `${Math.min(globalIndex * 0.02, 0.7)}s` }}
-                    onMouseEnter={() => cat && setHoveredCat(cat)}
-                    onMouseLeave={() => setHoveredCat(null)}
-                    onClick={() => handleSelect(globalIndex)}
+                    style={{ animationDelay: `${Math.min(flatLocalIndex * 0.02, 0.7)}s` }}
+                    onMouseEnter={() => !activeCat && cat && setHoveredCat(cat)}
+                    onMouseLeave={() => !activeCat && setHoveredCat(null)}
+                    onClick={() => handleSelect(flatLocalIndex)}
                   >
                     {slide.type === "video" ? (
                       <div
@@ -593,9 +646,7 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
                         alt={slide.caption || cat || ""}
                         loading="lazy"
                         className={`
-                          w-full h-auto block
-                          transition-all duration-500 ease-out
-                          group-hover:scale-[1.04]
+                          w-full h-auto block transition-all duration-500 ease-out group-hover:scale-[1.04]
                           ${isFaded
                             ? "opacity-[0.11] saturate-0 brightness-[1.7]"
                             : "opacity-100 saturate-100 brightness-100"
@@ -603,8 +654,7 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
                         `}
                       />
                     )}
- 
-                    {/* Маленький лейбл категорії на карточці */}
+
                     {cat && CAT_LABEL[cat] && (
                       <div className="absolute bottom-1 left-1 text-[9px] tracking-widest uppercase text-white/0 group-hover:text-white/70 transition-colors bg-black/40 px-1.5 py-0.5 rounded-sm pointer-events-none">
                         {CAT_LABEL[cat]}
@@ -617,13 +667,13 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
           ))}
         </div>
       </div>
- 
+
       {/* ── Великий лейбл знизу ── */}
       <div
         className="fixed bottom-0 left-0 right-0 text-center pointer-events-none pb-4 z-30"
         style={{
-          opacity:    hoveredCat ? 1 : 0,
-          transform:  hoveredCat ? "translateY(0)" : "translateY(12px)",
+          opacity:    displayCat ? 1 : 0,
+          transform:  displayCat ? "translateY(0)" : "translateY(12px)",
           transition: "opacity 0.32s ease, transform 0.32s ease",
         }}
       >
@@ -631,21 +681,21 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
           className="font-bold text-neutral-900 leading-none tracking-tight"
           style={{ fontFamily: "'Georgia', serif", fontSize: "clamp(2.2rem, 7vw, 6.5rem)" }}
         >
-          {hoveredLabel}
-          {hoveredCat && (
+          {displayLabel}
+          {displayCat && (
             <span
               className="text-neutral-400 align-super"
               style={{ fontSize: "clamp(0.65rem, 1.2vw, 1rem)", marginLeft: "0.3em", fontFamily: "sans-serif", fontWeight: 300 }}
             >
-              ({catCounts[hoveredCat] ?? 0})
+              ({catCounts[displayCat] ?? 0})
             </span>
           )}
         </div>
         <p className="text-[10px] tracking-[0.22em] uppercase text-neutral-400 mt-0.5">
-          / All Photos
+          {activeCat ? "/ filtered view" : "/ All Photos"}
         </p>
       </div>
- 
+
       <ScrollHint />
     </div>
   );

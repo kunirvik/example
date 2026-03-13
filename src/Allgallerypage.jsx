@@ -21,11 +21,9 @@ const extraSlides = [
   // { type: "video", src: "/videos/promo.mp4",          caption: "Відео",        cat: "video"   },
 ];
  
+
+ 
 // ─── Збірка всіх слайдів загальної галереї ────────────────────────────────
-// Тут беремо sample з кожного продукту + extraSlides.
-// cat для продуктових фото: "sets" / "ramps" / "skateparks" / "video"
-// FullscreenGallery показує фільтр лише для cats, що є в CAT_LABEL
-// (video, stroyka, figures). Решта cat просто не підсвічуються — це нормально.
 function buildGeneralSlides() {
   const fromCatalog = (catalog, defaultCat) =>
     catalog.flatMap((p) =>
@@ -34,7 +32,6 @@ function buildGeneralSlides() {
         cat: s.type === "video" ? "video" : defaultCat,
       }))
     );
- 
   return [
     ...fromCatalog(productCatalogSets,       "sets"),
     ...fromCatalog(productCatalogRamps,      "ramps"),
@@ -43,38 +40,38 @@ function buildGeneralSlides() {
   ];
 }
  
-// ─── Компонент ────────────────────────────────────────────────────────────
 export default function AllGalleryPage() {
   const navigate = useNavigate();
  
-  // null = показувати сітку, число = показувати FilmGallery з цим startIndex
-  const [filmIndex, setFilmIndex] = useState(null);
+  // null = сітка, { slides, index } = FilmGallery
+  const [filmState, setFilmState] = useState(null);
  
-  // Мемоізуємо слайди — щоб не пересчитувати при кожному рендері
   const generalSlides = useMemo(buildGeneralSlides, []);
  
-  // Клік на фото у сітці → відкрити FilmGallery
-  const handleSelectSlide = (idx) => setFilmIndex(idx);
+  // FullscreenGallery тепер передає { slides, index }:
+  //   slides = відфільтрований масив (або всі)
+  //   index  = позиція кліканого фото у цьому масиві
+  const handleSelectSlide = ({ slides, index }) => {
+    setFilmState({ slides, index });
+  };
  
-  // Закрити FilmGallery → повернутися до сітки
-  const handleCloseFilm = () => setFilmIndex(null);
+  // Закрити FilmGallery → назад у сітку
+  const handleCloseFilm = () => setFilmState(null);
  
-  // Закрити сітку → назад (каталог / продукт / звідки прийшли)
+  // Закрити сітку → назад (каталог / продукт)
   const handleCloseGrid = () => navigate(-1);
  
-  // ── FilmGallery режим ─────────────────────────────────────────────────
-  if (filmIndex !== null) {
+  if (filmState) {
     return (
       <FilmGallery
-        slides={generalSlides}
-        startIndex={filmIndex}
-        // onClose передаємо → кнопка × та кнопка сітки обидві повертають у сітку
+        slides={filmState.slides}
+        startIndex={filmState.index}
+        // onClose → кнопка × і кнопка сітки обидві повертають у сітку
         onClose={handleCloseFilm}
       />
     );
   }
  
-  // ── Сітка (FullscreenGallery) ─────────────────────────────────────────
   return (
     <FullscreenGallery
       slides={generalSlides}
