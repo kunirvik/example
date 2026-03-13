@@ -307,6 +307,7 @@
 // Это позволяет AllGalleryPage вернуться в сетку вместо истории браузера.
 
 // FilmGallery.jsx
+// FilmGallery.jsx
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
