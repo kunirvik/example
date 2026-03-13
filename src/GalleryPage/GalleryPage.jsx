@@ -113,7 +113,7 @@
 // Открывается из карточки продукта, показывает только слайды продуктов.
 
 import { useLocation } from "react-router-dom";
-import FilmGallery from "../FilmGallery/FilmGallery";
+import FilmGallery from "../FilmGallery";
 import productCatalogSets       from "../data/productCatalogSets";
 import productCatalogRamps      from "../data/productCatalogRamps";
 import productCatalogSkateparks from "../data/productCatalogSkateparks";
