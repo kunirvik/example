@@ -508,8 +508,8 @@ export default function FullscreenGallery({ slides = [], onClose, onSelectSlide 
   const handleSelect = useCallback((localIndex) => {
     const filteredSlides = filteredItems.map(({ slide }) => slide);
     onSelectSlide({ slides: filteredSlides, index: localIndex });
-    onClose();
-  }, [filteredItems, onSelectSlide, onClose]);
+    // onClose();
+  }, [filteredItems, onSelectSlide]);
 
   // Toggle фільтра
   const toggleCat = useCallback((cat) => {
