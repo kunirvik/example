@@ -597,9 +597,26 @@ export default function AdminPage() {
   const [authed, setAuthed]   = useState(false)
   const [keyInput, setKeyInput] = useState("")
 
-  // useEffect(() => { if (ADMIN_KEY) setAuthed(true) }, [])
+  useEffect(() => {
+    if (sessionStorage.getItem("admin_authed") === "1") setAuthed(true)
+  }, [])
 
   useEffect(() => { if (authed) loadPosts() }, [authed])
+
+  function login() {
+    if (keyInput === ADMIN_KEY) {
+      sessionStorage.setItem("admin_authed", "1")
+      setAuthed(true)
+    } else {
+      alert("Неверный ключ")
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem("admin_authed")
+    setAuthed(false)
+    setKeyInput("")
+  }
 
   async function loadPosts() {
     setLoading(true)
@@ -649,8 +666,8 @@ export default function AdminPage() {
           className="w-full border border-zinc-200 rounded-lg px-3 py-2 mb-3 text-sm"
           placeholder="Admin key" value={keyInput}
           onChange={e => setKeyInput(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && keyInput === ADMIN_KEY && setAuthed(true)} />
-        <button onClick={() => keyInput === ADMIN_KEY ? setAuthed(true) : alert("Неверный ключ")}
+          onKeyDown={e => e.key === "Enter" && login()} />
+        <button onClick={login}
           className="w-full py-2.5 bg-zinc-900 text-white rounded-lg text-sm font-semibold hover:bg-zinc-700 transition">
           Войти
         </button>
@@ -665,10 +682,16 @@ export default function AdminPage() {
           <h1 className="text-xl font-bold text-zinc-900">Блог · Админ</h1>
           <p className="text-xs text-zinc-400 mt-0.5">{posts.length} постов</p>
         </div>
-        <button onClick={() => setCreating(true)}
-          className="px-4 py-2 bg-zinc-900 text-white rounded-lg text-sm font-semibold hover:bg-zinc-700 transition">
-          + Новый пост
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setCreating(true)}
+            className="px-4 py-2 bg-zinc-900 text-white rounded-lg text-sm font-semibold hover:bg-zinc-700 transition">
+            + Новый пост
+          </button>
+          <button onClick={logout}
+            className="px-4 py-2 border border-zinc-200 rounded-lg text-sm text-zinc-500 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition">
+            Выйти
+          </button>
+        </div>
       </div>
 
       <div className="bg-white border-b border-zinc-100 px-6 py-3 flex gap-3 flex-wrap items-center">
