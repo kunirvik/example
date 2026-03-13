@@ -112,13 +112,17 @@
 // Маршрут: /gallery/:type/:id
 // Открывается из карточки продукта, показывает только слайды продуктов.
 
-import { useLocation } from "react-router-dom";
-import FilmGallery from "../FilmGallery";
+import { useMemo }          from "react";
+import { useLocation }      from "react-router-dom";
+import FilmGallery          from "../FilmGallery";
+ 
 import productCatalogSets       from "../data/productCatalogSets";
 import productCatalogRamps      from "../data/productCatalogRamps";
 import productCatalogSkateparks from "../data/productCatalogSkateparks";
-
-// ─── Слайды только из продуктов (для FilmGallery из карточки) ────────────────
+ 
+// ─── Всі слайди продуктів (для FilmGallery з картки) ────────────────────
+// Порядок: sets → ramps → skateparks.
+// Це той самий порядок, що використовує useOpenGallery для розрахунку startIndex.
 export const productSlides = [
   ...productCatalogSets.flatMap((p) =>
     (p.sample || []).map((s) => ({
@@ -139,12 +143,28 @@ export const productSlides = [
     }))
   ),
 ];
-
+ 
+// ─── Компонент ───────────────────────────────────────────────────────────
 export default function GalleryPage() {
-  const location   = useLocation();
+  const location = useLocation();
+ 
+  // startIndex передається з useOpenGallery через navigate("/gallery", { state: { startIndex } })
   const startIndex = location.state?.startIndex ?? 0;
-
-  return <FilmGallery slides={productSlides} startIndex={startIndex} />;
+ 
+  // Захист: якщо startIndex виходить за межі — починаємо з початку
+  const safeIndex = useMemo(
+    () =>
+      Number.isFinite(startIndex) &&
+      startIndex >= 0 &&
+      startIndex < productSlides.length
+        ? startIndex
+        : 0,
+    [startIndex]
+  );
+ 
+  // onClose не передаємо → FilmGallery використовує navigate(-1) → назад на продукт
+  // handleOpenAllGallery у FilmGallery → navigate("/gallery/all") → загальна галерея
+  return <FilmGallery slides={productSlides} startIndex={safeIndex} />;
 }
 // import { useParams, useLocation } from "react-router-dom";
 // import { useState } from "react";
