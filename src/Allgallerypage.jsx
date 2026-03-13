@@ -10,10 +10,10 @@
 
 import { useCallback, useState } from "react";
 import { useNavigate }           from "react-router-dom";
-import FullscreenGallery         from "../FullscreenGallery/FullscreenGallery";
-import FilmGallery               from "../FilmGallery/FilmGallery";
-import { productSlides }         from "../GalleryPage/GalleryPage";
-import extraGallerySlides        from "../data/extraGallerySlides";
+import FullscreenGallery         from "./FullscreenGallery/FullscreenGallery";
+import FilmGallery               from "./FilmGallery";
+import { productSlides }         from "./GalleryPage/GalleryPage";
+import extraGallerySlides        from "./data/extraGallerySlides";
 
 // ─── Мержим все источники ─────────────────────────────────────────────────────
 // Порядок: сначала фото из продуктов, потом extra.
