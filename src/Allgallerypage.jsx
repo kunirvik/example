@@ -15,10 +15,21 @@ import productCatalogSkateparks from "./data/productCatalogSkateparks";
 // cat: "figures"  → показується у фільтрі як "3d models"
 // Якщо cat немає — слайд показується, але не підсвічується при фільтрі.
 const extraSlides = [
-  // Приклад:
-  // { type: "image", src: "/images/stroyka/photo1.jpg", caption: "Будівництво", cat: "stroyka" },
-  // { type: "image", src: "/images/figures/model1.jpg", caption: "3D модель",   cat: "figures" },
-  // { type: "video", src: "/videos/promo.mp4",          caption: "Відео",        cat: "video"   },
+   // ── Фото ──────────────────────────────────────────────────────────────────
+  {
+    src:     "/images/project2026/2015.jpg",
+    cat:     "stroyka",
+    caption: "Будівництво рампи",
+  },
+  {
+    src:     "/images/project2026/2016.jpg",
+    cat:     "figures",
+    caption: "3D модель",
+  },
+  {
+    src:     "/images/project2026/2017.jpg",
+    cat:     "stroyka",
+  },
 ];
  
 

@@ -962,29 +962,27 @@ export default function BlogPostModal() {
  
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
- 
-        .post-body { color:rgba(255,255,255,0.72); font-family:'Barlow',sans-serif; font-size:14px; line-height:1.72; }
-        .post-body p  { margin-bottom:1em; }
-        .post-body h2 { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:1.25rem; text-transform:uppercase; color:#fff; margin:1.4em 0 0.4em; }
-        .post-body h3 { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:1rem; text-transform:uppercase; color:#fff; margin:1.1em 0 0.3em; }
-        .post-body a  { color:#ff6b00; text-decoration:underline; }
-        .post-body a:hover { color:#ff8c33; }
-        .post-body ul, .post-body ol { padding-left:1.3em; margin-bottom:0.9em; }
-        .post-body li { margin-bottom:0.25em; }
-        .post-body blockquote { border-left:3px solid #ff6b00; padding:0.5em 0.9em; margin:1em 0; background:rgba(255,107,0,0.07); color:rgba(255,255,255,0.55); font-style:italic; }
-        .post-body hr { border:none; border-top:1px solid rgba(255,255,255,0.08); margin:1.3em 0; }
- 
-        .right-scroll { overflow-y:auto; scrollbar-width:thin; scrollbar-color:#2a2a2a transparent; }
-        .right-scroll::-webkit-scrollbar { width:4px; }
-        .right-scroll::-webkit-scrollbar-thumb { background:#2a2a2a; border-radius:2px; }
-        .right-scroll::-webkit-scrollbar-thumb:hover { background:#ff6b00; }
- 
-        .thumb-strip { scrollbar-width:thin; scrollbar-color:#ff6b00 #1a1a1a; }
-        .thumb-strip::-webkit-scrollbar { height:3px; }
-        .thumb-strip::-webkit-scrollbar-thumb { background:#ff6b00; }
-      `}</style>
+  <style>{`
+  .post-body { color:rgba(255,255,255,0.72); font-family:'FuturaPT',sans-serif; font-weight:500; font-size:14px; line-height:1.72; }
+  .post-body p  { margin-bottom:1em; }
+  .post-body h2 { font-family:'FuturaPT',sans-serif; font-weight:bold; font-size:1.25rem; text-transform:uppercase; color:#fff; margin:1.4em 0 0.4em; letter-spacing:0.04em; }
+  .post-body h3 { font-family:'FuturaPT',sans-serif; font-weight:bold; font-size:1rem; text-transform:uppercase; color:#fff; margin:1.1em 0 0.3em; }
+  .post-body a  { color:#ff6b00; text-decoration:underline; }
+  .post-body a:hover { color:#ff8c33; }
+  .post-body ul, .post-body ol { padding-left:1.3em; margin-bottom:0.9em; }
+  .post-body li { margin-bottom:0.25em; }
+  .post-body blockquote { border-left:3px solid #ff6b00; padding:0.5em 0.9em; margin:1em 0; background:rgba(255,107,0,0.07); color:rgba(255,255,255,0.55); font-style:oblique; font-weight:light; }
+  .post-body hr { border:none; border-top:1px solid rgba(255,255,255,0.08); margin:1.3em 0; }
+
+  .right-scroll { overflow-y:auto; scrollbar-width:thin; scrollbar-color:#2a2a2a transparent; }
+  .right-scroll::-webkit-scrollbar { width:4px; }
+  .right-scroll::-webkit-scrollbar-thumb { background:#2a2a2a; border-radius:2px; }
+  .right-scroll::-webkit-scrollbar-thumb:hover { background:#ff6b00; }
+
+  .thumb-strip { scrollbar-width:thin; scrollbar-color:#ff6b00 #1a1a1a; }
+  .thumb-strip::-webkit-scrollbar { height:3px; }
+  .thumb-strip::-webkit-scrollbar-thumb { background:#ff6b00; }
+`}</style>
  
       {/* ── Full-screen shell ───────────────────────────────────────────────── */}
       <div className="bg-[#111] text-white flex flex-col" style={{ height: "100dvh" }}>
