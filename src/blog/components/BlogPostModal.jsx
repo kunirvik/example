@@ -1021,6 +1021,9 @@ export default function BlogPostModal() {
                   ‹
                 </button>
               )}
+              {post.telegramUrl && (
+  <TelegramComments telegramUrl={post.telegramUrl} dark={true} />
+)}
               {nextPost && (
                 <button onClick={() => navigate(`/blog/post/${nextPost.id}`)}
                   title={nextPost.title}
