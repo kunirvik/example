@@ -216,17 +216,28 @@ function EmojiFieldButton({ value, onChange, anchor = "bottom" }) {
 
 // ─── PostRow ──────────────────────────────────────────────────────────────────
 
-function PostRow({ post, onEdit, onDelete }) {
+function PostRow({ post, onEdit, onDelete, onApprove }) {
   return (
-    <div className="group flex items-start gap-4 p-4 border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
+    <div className={`group flex items-start gap-4 p-4 border-b border-zinc-100 hover:bg-zinc-50 transition-colors ${
+      post.status === "pending" ? "bg-amber-50 border-l-4 border-l-amber-400" : ""
+    }`}>
+      {/* обложка — без изменений */}
       {post.cover
         ? <img src={post.cover} className="w-16 h-16 object-cover rounded flex-shrink-0 bg-zinc-200" />
         : <div className="w-16 h-16 rounded flex-shrink-0 bg-zinc-100 flex items-center justify-center text-zinc-400 text-2xl">
             {post.type === "video" ? "▶" : "📄"}
           </div>
       }
+
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-zinc-900 truncate">{post.title}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-semibold text-zinc-900 truncate">{post.title}</p>
+          {post.status === "pending" && (
+            <span className="flex-shrink-0 text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+              ожидает
+            </span>
+          )}
+        </div>
         <p className="text-xs text-zinc-400 mt-0.5">{post.date} · {post.source || "file"}</p>
         <div className="flex gap-1 mt-1 flex-wrap">
           {post.tags?.map(t => (
@@ -234,7 +245,15 @@ function PostRow({ post, onEdit, onDelete }) {
           ))}
         </div>
       </div>
+
       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Кнопка апрува — только для pending */}
+        {post.status === "pending" && (
+          <button onClick={() => onApprove(post.id)}
+            className="px-3 py-1.5 text-xs font-bold border border-green-300 text-green-600 rounded hover:bg-green-500 hover:text-white hover:border-green-500 transition-all">
+            ✓ Опубликовать
+          </button>
+        )}
         <button onClick={() => onEdit(post)}
           className="px-3 py-1.5 text-xs font-medium border border-zinc-300 rounded hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition-all">
           Изменить
@@ -371,7 +390,7 @@ function PostForm({ initial = {}, onSave, onCancel, onBump, loading }) {
           value={form.date} onChange={e => set("date", e.target.value)} />
       </div>
 
-      {/* ── Теги ── */}
+      {/* ── Теги ──
       <div>
         <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Теги</label>
         <div className="mt-1 flex gap-2 flex-wrap">
@@ -386,7 +405,47 @@ function PostForm({ initial = {}, onSave, onCancel, onBump, loading }) {
             </button>
           ))}
         </div>
-      </div>
+      </div> */}
+
+      {/* ── Теги ── */}
+<div>
+  <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Теги</label>
+
+  {/* Активные теги — с крестиком */}
+  <div className="mt-1 flex gap-1.5 flex-wrap mb-2">
+    {form.tags.map(tag => (
+      <span key={tag}
+        className="flex items-center gap-1 px-2.5 py-0.5 bg-zinc-900 text-white text-xs rounded-full">
+        #{tag}
+        <button type="button" onClick={() => set("tags", form.tags.filter(t => t !== tag))}
+          className="text-white/50 hover:text-white leading-none cursor-pointer">✕</button>
+      </span>
+    ))}
+  </div>
+
+  {/* Быстрые пресеты */}
+  <div className="flex gap-1.5 flex-wrap mb-2">
+    {TAGS.filter(t => !form.tags.includes(t)).map(tag => (
+      <button key={tag} type="button" onClick={() => toggleTag(tag)}
+        className="px-2.5 py-0.5 rounded-full text-xs border border-dashed border-zinc-300 text-zinc-400 hover:border-zinc-600 hover:text-zinc-700 transition-all cursor-pointer">
+        +#{tag}
+      </button>
+    ))}
+  </div>
+
+  {/* Произвольный тег — Enter чтобы добавить */}
+  <input
+    className="w-full border border-zinc-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+    placeholder="Новый тег → Enter"
+    onKeyDown={e => {
+      if (e.key !== "Enter") return
+      e.preventDefault()
+      const val = e.target.value.trim().toLowerCase().replace(/\s+/g, "-")
+      if (val && !form.tags.includes(val)) set("tags", [...form.tags, val])
+      e.target.value = ""
+    }}
+  />
+</div>
 
       {/* ── Обложка ── */}
       <div>
@@ -620,13 +679,21 @@ export default function AdminPage() {
 
   async function loadPosts() {
     setLoading(true)
+
     try {
-      const res  = await fetch(`${API_URL}/api/blog`)
+      // const res  = await fetch(`${API_URL}/api/blog`)
+          const res  = await fetch(`${API_URL}/api/blog?all=1`, { headers: headers() })
       const data = await res.json()
       setPosts(data)
     } finally { setLoading(false) }
   }
-
+async function approvePost(id) {
+  await fetch(`${API_URL}/api/blog/${id}/approve`, {
+    method: "PATCH",
+    headers: headers(),
+  })
+  loadPosts()
+}
   async function deletePost(id) {
     if (!confirm("Удалить пост?")) return
     await fetch(`${API_URL}/api/blog/${id}`, { method: "DELETE", headers: headers() })

@@ -125,7 +125,7 @@ export default function BlogCard({ post, index = 0 }) {
         {/* ── Content ── */}
         <div className="flex-1 min-w-0 px-4 py-3 flex flex-col justify-between">
           <div>
-            {/* Source + date */}
+            {/* Source + date
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               {post.source && post.source !== "telegram" && (
                 <span className="text-[11px] font-bold text-[#555] uppercase tracking-wide">
@@ -139,7 +139,37 @@ export default function BlogCard({ post, index = 0 }) {
               }`}>
                 {dateLabel}
               </span>
-            </div>
+            </div> */}
+
+{/* Source + date */}
+<div className="flex items-center gap-2 mb-1.5 flex-wrap">
+  {post.source && post.source !== "telegram" && (
+    <span className="text-[11px] font-bold text-[#555] uppercase tracking-wide">
+      {post.source}
+    </span>
+  )}
+  <span className={`text-[11px] font-bold px-1.5 py-0.5 ${
+    isRecent ? "bg-[#ffe600] text-[#333]" : "bg-[#f0f0f0] text-[#777]"
+  }`}>
+    {dateLabel}
+  </span>
+
+  {/* Бейдж "обновлено" — только если updatedAt существенно новее date */}
+  {(() => {
+    if (!post.updatedAt) return null
+    const created = new Date(post.date)
+    const updated = new Date(post.updatedAt)
+    const diffDays = (updated - created) / 86400000
+    if (diffDays < 1) return null  // игнорируем если обновлено в тот же день
+    const updLabel = updated.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    return (
+      <span className="text-[11px] font-bold px-1.5 py-0.5 bg-[#e8f5e9] text-[#2e7d32]">
+        ↑ {updLabel}
+      </span>
+    )
+  })()}
+</div>
+
 
             {/* Title */}
             <h2 className="font-['Barlow_Condensed'] font-black text-[#111] text-xl leading-tight group-hover:text-[#0066cc] transition-colors duration-100 mb-1.5"
