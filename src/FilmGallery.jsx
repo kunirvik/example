@@ -611,7 +611,7 @@ export default function FilmGallery({ slides, startIndex = 0, onClose: onClosePr
   return (
     <div
       ref={containerRef}
-      className="w-screen h-dvh flex flex-col bg-neutral-950 overflow-hidden"
+      className=" fixed inset-0 flex flex-col bg-neutral-950 overflow-hidden"
       style={{
         opacity:    mounted ? 1 : 0,
         transform:  mounted ? "scale(1)" : "scale(1.04)",
