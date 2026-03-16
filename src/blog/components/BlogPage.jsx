@@ -94,7 +94,7 @@ function SidebarPostLink({ post, rank }) {
         }
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[12px] font-['Barlow_Condensed'] font-bold text-[#111] leading-tight group-hover:text-[#0066cc] transition-colors line-clamp-2">
+        <p className="text-[12px] font-futura font-bold text-[#111] leading-tight group-hover:text-[#0066cc] transition-colors line-clamp-2">
           {post.title}
         </p>
         <p className="text-[10px] text-[#999] font-['Barlow'] mt-0.5">{post.date}</p>
@@ -191,7 +191,7 @@ export default function BlogPage() {
   return (
     <PostsContext.Provider value={filtered}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
+       
  
         @keyframes pbRowIn {
           from { opacity:0; transform:translateY(6px); }
@@ -207,7 +207,7 @@ export default function BlogPage() {
         {/* ── Top bar ──────────────────────────────────────────────────────── */}
         <div className="bg-[#1a1a1a] border-b-2 border-[#cc0000]">
           <div className="max-w-[1200px] mx-auto px-4 h-11 flex items-center gap-4">
-            <h1 className="font-['Barlow_Condensed'] font-black text-white text-lg uppercase tracking-wider flex-shrink-0">
+            <h1 className="font-futura font-black text-white text-lg uppercase tracking-wider flex-shrink-0">
               News
             </h1>
             <div className="h-4 w-px bg-white/20 flex-shrink-0" />
@@ -215,7 +215,7 @@ export default function BlogPage() {
             <div className="flex gap-1 overflow-x-auto flex-1" style={{ scrollbarWidth:"none" }}>
               {TAGS.map(tag => (
                 <button key={tag} onClick={() => setActiveTag(tag)}
-                  className={`flex-shrink-0 px-3 py-1 text-[11px] font-['Barlow_Condensed'] font-black uppercase tracking-wide transition-colors cursor-pointer ${
+                  className={`flex-shrink-0 px-3 py-1 text-[11px] font-futura font-black uppercase tracking-wide transition-colors cursor-pointer ${
                     activeTag === tag
                       ? "bg-[#cc0000] text-white"
                       : "text-white/50 hover:text-white hover:bg-white/10"
@@ -294,7 +294,7 @@ export default function BlogPage() {
               <div className="bg-white border border-[#e0e0e0] shadow-sm">
                 <div className="bg-[#1a1a1a] px-3 py-2 flex items-center gap-2">
                   <div className="w-2 h-2 bg-[#cc0000]" />
-                  <span className="font-['Barlow_Condensed'] font-black text-white text-[11px] uppercase tracking-widest">
+                  <span className="font-futura font-black text-white text-[11px] uppercase tracking-widest">
                     Latest Posts
                   </span>
                 </div>
@@ -309,7 +309,7 @@ export default function BlogPage() {
               <div className="bg-white border border-[#e0e0e0] shadow-sm">
                 <div className="bg-[#1a1a1a] px-3 py-2 flex items-center gap-2">
                   <div className="w-2 h-2 bg-[#cc0000]" />
-                  <span className="font-['Barlow_Condensed'] font-black text-white text-[11px] uppercase tracking-widest">
+                  <span className="font-futura font-black text-white text-[11px] uppercase tracking-widest">
                     Categories
                   </span>
                 </div>
