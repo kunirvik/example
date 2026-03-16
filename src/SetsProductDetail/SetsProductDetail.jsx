@@ -40,7 +40,10 @@ export default function SetsProductDetail() {
     typeof window !== "undefined" &&
     ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
-  const imageData = location.state?.imageData;
+  // const imageData = location.state?.imageData;
+const imageDataRef = useRef(location.state?.imageData ?? null);
+const imageData = imageDataRef.current;
+
   const slideIndexParam = Number(searchParams.get("view")) || 0;
 
   const isDesktop = () => window.innerWidth >= 1024;
@@ -363,7 +366,7 @@ export default function SetsProductDetail() {
       onComplete: async () => {
         gsap.set(swiperEl, { visibility: "visible", opacity: 1 });
         gsap.set(transitionEl, { visibility: "hidden", opacity: 0 });
-
+  window.history.replaceState({}, "", window.location.pathname); 
         // FIX 1: window.history.replaceState УДАЛЁН — он очищал imageData
         // и приводил к размонтированию transitionImage
 

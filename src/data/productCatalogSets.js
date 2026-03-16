@@ -181,9 +181,9 @@ const productCatalogSets = [
           "/images/sets/box360/160yolobox15.webp", "/images/sets/box360/160yolobox16.webp", "/images/sets/box360/160yolobox17.webp", "/images/sets/box360/160yolobox18.webp", ],
 
     sample: [
-      { type: "image", src: "/images/sample/jumpbox.jpg" },
-      { type: "image", src: "/images/sample/jumpbox1.jpg" },
-      { type: "image", src: "/images/sample/jumpboxhatob.JPG" },
+      { type: "image", src: "/images/sample/jumpbox.webp" },
+      { type: "image", src: "/images/sample/jumpbox1.webp" },
+      { type: "image", src: "/images/sample/jumpboxhatob.webp" },
       {
         type: "video",
         src: "https://res.cloudinary.com/dbx6muxub/video/upload/v1754506398/20220206_214037_qbp9jd.mp4",
