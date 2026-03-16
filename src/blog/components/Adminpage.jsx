@@ -782,7 +782,7 @@ async function approvePost(id) {
           : filtered.length === 0
             ? <div className="p-12 text-center text-zinc-400">Постов не найдено</div>
             : filtered.map(post => (
-                <PostRow key={post.id} post={post} onEdit={setEditing} onDelete={deletePost} />
+                <PostRow key={post.id} post={post} onEdit={setEditing} onDelete={deletePost}  onApprove={approvePost} />
               ))
         }
       </div>
