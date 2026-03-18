@@ -60,7 +60,7 @@ import GalleryPage from "./GalleryPage/GalleryPage";
 import BlogPostModal from "./blog/components/BlogPostModal";
 import AdminPage from "./blog/components/Adminpage";
 import AllGalleryPage from "./Allgallerypage";
-import MarketplacePage from "./MarketplacePage";
+import MarketplacePage from "./Marketplacepage/Marketplacepage";
 
 function App() {
   const location = useLocation();
