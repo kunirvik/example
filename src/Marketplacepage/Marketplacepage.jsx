@@ -12,28 +12,26 @@ function cldUrl(url, { w, h, crop = "fill" } = {}) {
   return url.replace("/upload/", `/upload/${p.join(",")}/`)
 }
 
+// ── ОНОВЛЕНІ КАТЕГОРІЇ ────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { id: "all",         label: "Всі"           },
-  { id: "bikes",       label: "🚲 Велосипеди"  },
-  { id: "parts",       label: "🔩 Запчастини"  },
-  { id: "clothing",    label: "👕 Одяг"         },
-  { id: "electronics", label: "📱 Електроніка" },
-  { id: "other",       label: "📦 Інше"         },
+  { id: "all",      label: "Всі"            },
+  { id: "mtb",      label: "🚵 MTB"         },
+  { id: "bmx",      label: "🚴 BMX"         },
+  { id: "skate",    label: "🛹 Skate"       },
+  { id: "parts",    label: "🔧 Запчастини"  },
+  { id: "clothing", label: "👕 Одяг"        },
+  { id: "other",    label: "📦 Інше"        },
 ]
 
 const BOT_URL = `https://t.me/${import.meta.env.VITE_MARKETPLACE_BOT_USERNAME || "your_market_bot"}`
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Lightbox — рендериться через portal в document.body
-// Це вирішує проблему: коли батьківський елемент має CSS transform
-// (hover:-translate-y-0.5 на картці), position:fixed рендерується відносно
-// батька, а не вікна браузера. Portal виносить модалку поза будь-який контекст.
 // ─────────────────────────────────────────────────────────────────────────────
 function Lightbox({ photos, startIndex, onClose }) {
   const [active, setActive] = useState(startIndex)
 
   useEffect(() => {
-    // Блокуємо scroll body поки відкрито
     document.body.style.overflow = "hidden"
     return () => { document.body.style.overflow = "" }
   }, [])
@@ -53,7 +51,6 @@ function Lightbox({ photos, startIndex, onClose }) {
       className="fixed inset-0 z-[9999] bg-black/95 flex flex-col items-center justify-center p-4"
       onClick={onClose}
     >
-      {/* Кнопка закрити */}
       <button
         onClick={onClose}
         className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white text-xl flex items-center justify-center cursor-pointer transition"
@@ -61,14 +58,12 @@ function Lightbox({ photos, startIndex, onClose }) {
         ✕
       </button>
 
-      {/* Лічильник */}
       {photos.length > 1 && (
         <p className="absolute top-5 left-1/2 -translate-x-1/2 text-white/50 text-sm select-none">
           {active + 1} / {photos.length}
         </p>
       )}
 
-      {/* Велике фото + стрілки */}
       <div
         className="flex items-center gap-4"
         onClick={e => e.stopPropagation()}
@@ -95,7 +90,6 @@ function Lightbox({ photos, startIndex, onClose }) {
         )}
       </div>
 
-      {/* Thumbnails */}
       {photos.length > 1 && (
         <div
           className="flex gap-2 mt-4 flex-wrap justify-center"
@@ -117,7 +111,7 @@ function Lightbox({ photos, startIndex, onClose }) {
         </div>
       )}
     </div>,
-    document.body   // ← рендеримо прямо в body, поза будь-яким transform-контекстом
+    document.body
   )
 }
 
@@ -138,8 +132,6 @@ function PhotoGallery({ photos }) {
     <>
       <div
         className="relative cursor-zoom-in"
-        // e.stopPropagation() — забороняємо подію підійматись до батьків
-        // без цього клік міг би закривати модалку одразу після відкриття
         onClick={e => { e.stopPropagation(); setLightbox(true) }}
       >
         <img
@@ -150,14 +142,12 @@ function PhotoGallery({ photos }) {
           draggable={false}
         />
 
-        {/* Лічильник */}
         {photos.length > 1 && (
           <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full select-none">
             {active + 1} / {photos.length}
           </div>
         )}
 
-        {/* Точки-перемикачі */}
         {photos.length > 1 && (
           <div
             className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1"
@@ -176,7 +166,6 @@ function PhotoGallery({ photos }) {
         )}
       </div>
 
-      {/* Лайтбокс через portal — не залежить від transform батьків */}
       {lightbox && (
         <Lightbox
           photos={photos}
@@ -245,12 +234,19 @@ function ListingCard({ listing }) {
             )}
           </div>
 
-          <p className="text-[10px] text-zinc-300 mt-2">
-            {new Date(listing.createdAt).toLocaleDateString("uk-UA", { day: "numeric", month: "long" })}
-            {listing.expiresAt && (
-              <span> · до {new Date(listing.expiresAt).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}</span>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-[10px] text-zinc-300">
+              {new Date(listing.createdAt).toLocaleDateString("uk-UA", { day: "numeric", month: "long" })}
+              {listing.expiresAt && (
+                <span> · до {new Date(listing.expiresAt).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}</span>
+              )}
+            </p>
+            {listing.viewCount > 0 && (
+              <p className="text-[10px] text-zinc-400">
+                👁 {listing.viewCount}
+              </p>
             )}
-          </p>
+          </div>
         </div>
       </div>
     </div>
