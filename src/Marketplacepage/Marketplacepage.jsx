@@ -12,21 +12,42 @@ function cldUrl(url, { w, h, crop = "fill" } = {}) {
   return url.replace("/upload/", `/upload/${p.join(",")}/`)
 }
 
-// ── ОНОВЛЕНІ КАТЕГОРІЇ ────────────────────────────────────────────────────────
+// ── КАТЕГОРІЇ ──────────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { id: "all",      label: "Всі"            },
-  { id: "mtb",      label: "🚵 MTB"         },
-  { id: "bmx",      label: "🚴 BMX"         },
-  { id: "skate",    label: "🛹 Skate"       },
-  { id: "parts",    label: "🔧 Запчастини"  },
-  { id: "clothing", label: "👕 Одяг"        },
-  { id: "other",    label: "📦 Інше"        },
+  { id: "all",      label: "ВСІ"         },
+  { id: "mtb",      label: "MTB"         },
+  { id: "bmx",      label: "BMX"         },
+  { id: "skate",    label: "SKATE"       },
+  { id: "parts",    label: "ЗАПЧАСТИНИ"  },
+  { id: "clothing", label: "ОДЯГ"        },
+  { id: "other",    label: "ІНШЕ"        },
 ]
 
 const BOT_URL = `https://t.me/${import.meta.env.VITE_MARKETPLACE_BOT_USERNAME || "your_market_bot"}`
 
+// ── SVG ІКОНКИ ────────────────────────────────────────────────────────────────
+const EyeIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+)
+
+const ClockIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M12 6v6l4 2"/>
+  </svg>
+)
+
+const PhoneIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+  </svg>
+)
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Lightbox — рендериться через portal в document.body
+// Lightbox
 // ─────────────────────────────────────────────────────────────────────────────
 function Lightbox({ photos, startIndex, onClose }) {
   const [active, setActive] = useState(startIndex)
@@ -48,12 +69,12 @@ function Lightbox({ photos, startIndex, onClose }) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] bg-black/95 flex flex-col items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] bg-black/95 flex flex-col items-center justify-center p-4 font-futura"
       onClick={onClose}
     >
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white text-xl flex items-center justify-center cursor-pointer transition"
+        className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-red-500/20 text-white text-xl flex items-center justify-center cursor-pointer transition"
       >
         ✕
       </button>
@@ -71,21 +92,21 @@ function Lightbox({ photos, startIndex, onClose }) {
         {active > 0 && (
           <button
             onClick={() => setActive(a => a - 1)}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 text-white text-2xl flex items-center justify-center cursor-pointer flex-shrink-0 transition"
+            className="w-10 h-10 bg-white/10 hover:bg-white/25 text-white text-2xl flex items-center justify-center cursor-pointer flex-shrink-0 transition"
           >‹</button>
         )}
 
         <img
           src={cldUrl(photos[active], { w: 1200, h: 900, crop: "limit" })}
           alt=""
-          className="max-h-[80vh] max-w-[85vw] object-contain rounded-xl select-none"
+          className="max-h-[80vh] max-w-[85vw] object-contain select-none"
           draggable={false}
         />
 
         {active < photos.length - 1 && (
           <button
             onClick={() => setActive(a => a + 1)}
-            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/25 text-white text-2xl flex items-center justify-center cursor-pointer flex-shrink-0 transition"
+            className="w-10 h-10 bg-white/10 hover:bg-white/25 text-white text-2xl flex items-center justify-center cursor-pointer flex-shrink-0 transition"
           >›</button>
         )}
       </div>
@@ -101,9 +122,9 @@ function Lightbox({ photos, startIndex, onClose }) {
               src={cldUrl(p, { w: 80, h: 80 })}
               onClick={() => setActive(i)}
               draggable={false}
-              className={`w-14 h-14 object-cover rounded-lg cursor-pointer border-2 transition-all select-none ${
+              className={`w-14 h-14 object-cover cursor-pointer border-2 transition-all select-none ${
                 active === i
-                  ? "border-white scale-110"
+                  ? "border-green-500 scale-110"
                   : "border-transparent opacity-50 hover:opacity-100"
               }`}
             />
@@ -116,49 +137,49 @@ function Lightbox({ photos, startIndex, onClose }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PhotoGallery — превью з точками-перемикачами
+// PhotoGallery
 // ─────────────────────────────────────────────────────────────────────────────
 function PhotoGallery({ photos }) {
   const [active,    setActive]    = useState(0)
   const [lightbox,  setLightbox]  = useState(false)
 
   if (!photos?.length) return (
-    <div className="w-full h-52 bg-zinc-100 rounded-xl flex items-center justify-center text-4xl select-none">
-      🛍️
+    <div className="w-full h-52 bg-neutral-800 flex items-center justify-center text-4xl select-none text-neutral-600">
+      ⬚
     </div>
   )
 
   return (
     <>
       <div
-        className="relative cursor-zoom-in"
+        className="relative cursor-zoom-in group"
         onClick={e => { e.stopPropagation(); setLightbox(true) }}
       >
         <img
           src={cldUrl(photos[active], { w: 600, h: 400 })}
           alt=""
-          className="w-full h-52 object-cover rounded-xl pointer-events-none select-none"
+          className="w-full h-52 object-cover pointer-events-none select-none group-hover:brightness-110 transition-all"
           loading="lazy"
           draggable={false}
         />
 
         {photos.length > 1 && (
-          <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full select-none">
-            {active + 1} / {photos.length}
+          <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 select-none font-futura">
+            {active + 1}/{photos.length}
           </div>
         )}
 
         {photos.length > 1 && (
           <div
-            className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1"
+            className="absolute bottom-2 left-2 flex gap-1"
             onClick={e => e.stopPropagation()}
           >
             {photos.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setActive(i)}
-                className={`w-1.5 h-1.5 rounded-full transition-all ${
-                  active === i ? "bg-white scale-125" : "bg-white/50"
+                className={`w-1.5 h-1.5 transition-all ${
+                  active === i ? "bg-green-500 scale-125" : "bg-white/50"
                 }`}
               />
             ))}
@@ -185,75 +206,72 @@ function ListingCard({ listing }) {
   const hasLong = listing.description?.length > 100
 
   return (
-    <div className="bg-white rounded-2xl border border-zinc-200 overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+    <div className="bg-neutral-900 border border-neutral-800 overflow-hidden hover:border-neutral-700 hover:shadow-lg transition-all duration-200">
       <PhotoGallery photos={listing.photos} />
 
       <div className="p-4">
-        <div className="flex items-start justify-between gap-2">
-          <p className="text-xl font-bold text-zinc-900">{listing.price || "Договірна"}</p>
-          {/* ViewCount у верхній частині */}
-          <div className="flex items-center gap-1 px-2 py-0.5 bg-zinc-50 rounded-full">
-            <span className="text-xs text-zinc-400">👁</span>
-            <span className="text-xs font-medium text-zinc-600">{listing.viewCount || 0}</span>
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <p className="text-xl font-bold text-white font-futura">{listing.price || "ДОГОВІРНА"}</p>
+          {/* ViewCount - тільки тут, вгорі справа */}
+          <div className="flex items-center gap-1.5 text-neutral-400">
+            <EyeIcon className="w-4 h-4" />
+            <span className="text-sm font-futura font-medium">{listing.viewCount || 0}</span>
           </div>
         </div>
-        <h3 className="text-sm font-semibold text-zinc-800 mt-1 leading-snug">{listing.title}</h3>
+        
+        <h3 className="text-sm font-medium text-neutral-200 leading-snug font-futura uppercase tracking-wide">
+          {listing.title}
+        </h3>
 
         {listing.description && (
           <div className="mt-2">
-            <p className={`text-xs text-zinc-500 leading-relaxed ${!expanded && hasLong ? "line-clamp-2" : ""}`}>
+            <p className={`text-xs text-neutral-400 leading-relaxed font-futura ${!expanded && hasLong ? "line-clamp-2" : ""}`}>
               {listing.description}
             </p>
             {hasLong && (
               <button
                 onClick={() => setExpanded(e => !e)}
-                className="text-xs text-zinc-400 hover:text-zinc-700 mt-0.5 transition-colors cursor-pointer"
+                className="text-xs text-neutral-500 hover:text-green-500 mt-1 transition-colors cursor-pointer font-futura"
               >
-                {expanded ? "Згорнути ↑" : "Читати далі ↓"}
+                {expanded ? "ЗГОРНУТИ ↑" : "ЧИТАТИ ↓"}
               </button>
             )}
           </div>
         )}
 
-        <div className="border-t border-zinc-100 mt-3 pt-3">
+        <div className="border-t border-neutral-800 mt-3 pt-3">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-1">
               {listing.contactUsername && (
                 <a href={`https://t.me/${listing.contactUsername}`}
                   target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                  className="text-xs text-green-500 hover:text-green-400 font-medium transition-colors font-futura">
                   @{listing.contactUsername}
                 </a>
               )}
               {listing.contactPhone && (
                 <a href={`tel:${listing.contactPhone}`}
-                  className="text-xs text-zinc-500 hover:text-zinc-800 transition-colors">
-                  📞 {listing.contactPhone}
+                  className="text-xs text-neutral-400 hover:text-neutral-200 transition-colors flex items-center gap-1.5 font-futura">
+                  <PhoneIcon className="w-3.5 h-3.5" />
+                  {listing.contactPhone}
                 </a>
               )}
             </div>
             {listing.contactUsername && (
               <a href={`https://t.me/${listing.contactUsername}`}
                 target="_blank" rel="noopener noreferrer"
-                className="flex-shrink-0 px-3 py-1.5 bg-zinc-900 text-white text-xs font-semibold rounded-lg hover:bg-zinc-700 transition-colors">
-                Написати
+                className="flex-shrink-0 px-4 py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs font-medium transition-colors font-futura uppercase tracking-wider">
+                НАПИСАТИ
               </a>
             )}
           </div>
 
-          <div className="flex items-center justify-between mt-2">
-            <p className="text-[10px] text-zinc-300">
-              {new Date(listing.createdAt).toLocaleDateString("uk-UA", { day: "numeric", month: "long" })}
-              {listing.expiresAt && (
-                <span> · до {new Date(listing.expiresAt).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}</span>
-              )}
-            </p>
-            {/* Завжди показуємо viewCount */}
-            <div className="flex items-center gap-1 text-zinc-400">
-              <span className="text-[10px]">👁</span>
-              <span className="text-[10px] font-medium">{listing.viewCount || 0}</span>
-            </div>
-          </div>
+          <p className="text-[10px] text-neutral-600 mt-2 font-futura uppercase tracking-wide">
+            {new Date(listing.createdAt).toLocaleDateString("uk-UA", { day: "numeric", month: "long" })}
+            {listing.expiresAt && (
+              <span> · ДО {new Date(listing.expiresAt).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}</span>
+            )}
+          </p>
         </div>
       </div>
     </div>
@@ -269,7 +287,7 @@ export default function MarketplacePage() {
   const [error,    setError]    = useState(null)
   const [category, setCategory] = useState("all")
   const [search,   setSearch]   = useState("")
-  const [sortBy,   setSortBy]   = useState("date") // "date" або "views"
+  const [sortBy,   setSortBy]   = useState("date")
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -297,67 +315,70 @@ export default function MarketplacePage() {
       return new Date(b.createdAt) - new Date(a.createdAt)
     })
 
+  const totalViews = listings.reduce((sum, l) => sum + (l.viewCount || 0), 0)
+
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <div className="bg-white border-b border-zinc-200">
-        <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-neutral-950 font-futura">
+      <div className="bg-neutral-900 border-b border-neutral-800">
+        <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-zinc-900">Барахолка</h1>
-              <p className="text-sm text-zinc-500 mt-1">
+              <h1 className="text-3xl font-bold text-white uppercase tracking-tight">БАРАХОЛКА</h1>
+              <p className="text-sm text-neutral-400 mt-1 uppercase tracking-wide">
                 {listings.length > 0 
-                  ? `${listings.length} оголошень · ${listings.reduce((sum, l) => sum + (l.viewCount || 0), 0)} переглядів`
-                  : "Оголошення від учасників спільноти"
+                  ? `${listings.length} ОГОЛОШЕНЬ · ${totalViews} ПЕРЕГЛЯДІВ`
+                  : "ОГОЛОШЕННЯ ВІД УЧАСНИКІВ"
                 }
               </p>
             </div>
             <a href={BOT_URL} target="_blank" rel="noopener noreferrer"
-              className="flex-shrink-0 px-4 py-2.5 bg-zinc-900 text-white text-sm font-semibold rounded-xl hover:bg-zinc-700 transition-colors">
-              + Подати оголошення
+              className="flex-shrink-0 px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-colors uppercase tracking-wider">
+              + ПОДАТИ
             </a>
           </div>
 
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-5 flex items-center gap-3 flex-wrap">
             <input
               type="text"
-              placeholder="Пошук по оголошеннях..."
+              placeholder="ПОШУК..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="flex-1 max-w-sm border border-zinc-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 bg-zinc-50"
+              className="flex-1 min-w-[200px] max-w-sm bg-neutral-800 border border-neutral-700 px-4 py-2.5 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-green-500 transition-colors uppercase tracking-wide"
             />
             
-            {/* Сортування */}
             <div className="flex gap-2">
               <button
                 onClick={() => setSortBy("date")}
-                className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                className={`px-4 py-2.5 text-xs font-medium transition-all uppercase tracking-wider flex items-center gap-2 ${
                   sortBy === "date"
-                    ? "bg-zinc-900 text-white"
-                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                    ? "bg-green-600 text-white"
+                    : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
                 }`}
               >
-                🕐 Нові
+                <ClockIcon className="w-4 h-4" />
+                НОВІ
               </button>
               <button
                 onClick={() => setSortBy("views")}
-                className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                className={`px-4 py-2.5 text-xs font-medium transition-all uppercase tracking-wider flex items-center gap-2 ${
                   sortBy === "views"
-                    ? "bg-zinc-900 text-white"
-                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                    ? "bg-green-600 text-white"
+                    : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
                 }`}
               >
-                👁 Популярні
+                <EyeIcon className="w-4 h-4" />
+                ПОПУЛЯРНІ
               </button>
             </div>
           </div>
 
-          <div className="flex gap-2 flex-wrap mt-3">
+          <div className="flex gap-2 flex-wrap mt-4">
             {CATEGORIES.map(cat => (
               <button key={cat.id} onClick={() => setCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                className={`px-4 py-2 text-xs font-medium border transition-all uppercase tracking-wider ${
                   category === cat.id
-                    ? "bg-zinc-900 text-white border-zinc-900"
-                    : "border-zinc-200 text-zinc-600 hover:border-zinc-400 bg-white"
+                    ? "bg-white text-black border-white"
+                    : "border-neutral-700 text-neutral-400 hover:border-neutral-500 bg-transparent"
                 }`}>
                 {cat.label}
               </button>
@@ -366,16 +387,16 @@ export default function MarketplacePage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto px-4 py-6">
         {loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-zinc-200 overflow-hidden animate-pulse">
-                <div className="h-52 bg-zinc-100" />
+              <div key={i} className="bg-neutral-900 border border-neutral-800 overflow-hidden animate-pulse">
+                <div className="h-52 bg-neutral-800" />
                 <div className="p-4 space-y-2">
-                  <div className="h-5 bg-zinc-100 rounded w-1/3" />
-                  <div className="h-3 bg-zinc-100 rounded w-3/4" />
-                  <div className="h-3 bg-zinc-100 rounded w-1/2" />
+                  <div className="h-5 bg-neutral-800 w-1/3" />
+                  <div className="h-3 bg-neutral-800 w-3/4" />
+                  <div className="h-3 bg-neutral-800 w-1/2" />
                 </div>
               </div>
             ))}
@@ -384,24 +405,26 @@ export default function MarketplacePage() {
 
         {error && (
           <div className="text-center py-16">
-            <p className="text-zinc-400 mb-3">Не вдалося завантажити оголошення</p>
+            <p className="text-neutral-400 mb-3 uppercase tracking-wide">НЕ ВДАЛОСЯ ЗАВАНТАЖИТИ</p>
             <button onClick={load}
-              className="px-4 py-2 bg-zinc-900 text-white text-sm rounded-lg hover:bg-zinc-700 transition">
-              Спробувати знову
+              className="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white text-sm transition uppercase tracking-wider">
+              СПРОБУВАТИ ЗНОВУ
             </button>
           </div>
         )}
 
         {!loading && !error && filtered.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-4xl mb-3">🛍️</p>
-            <p className="text-zinc-500 font-medium">
-              {listings.length === 0 ? "Поки немає оголошень" : "Нічого не знайдено"}
+            <p className="text-4xl mb-3">⬚</p>
+            <p className="text-neutral-400 font-medium uppercase tracking-wide">
+              {listings.length === 0 ? "ПОКИ НЕМАЄ ОГОЛОШЕНЬ" : "НІЧОГО НЕ ЗНАЙДЕНО"}
             </p>
-            <p className="text-zinc-400 text-sm mt-1">Будьте першим — подайте оголошення через бота</p>
+            <p className="text-neutral-600 text-sm mt-1 uppercase tracking-wide">
+              БУДЬТЕ ПЕРШИМ
+            </p>
             <a href={BOT_URL} target="_blank" rel="noopener noreferrer"
-              className="inline-block mt-4 px-5 py-2.5 bg-zinc-900 text-white text-sm font-semibold rounded-xl hover:bg-zinc-700 transition">
-              Відкрити бота
+              className="inline-block mt-4 px-6 py-2.5 bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition uppercase tracking-wider">
+              ВІДКРИТИ БОТА
             </a>
           </div>
         )}
