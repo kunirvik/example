@@ -189,7 +189,14 @@ function ListingCard({ listing }) {
       <PhotoGallery photos={listing.photos} />
 
       <div className="p-4">
-        <p className="text-xl font-bold text-zinc-900">{listing.price || "Договірна"}</p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-xl font-bold text-zinc-900">{listing.price || "Договірна"}</p>
+          {/* ViewCount у верхній частині */}
+          <div className="flex items-center gap-1 px-2 py-0.5 bg-zinc-50 rounded-full">
+            <span className="text-xs text-zinc-400">👁</span>
+            <span className="text-xs font-medium text-zinc-600">{listing.viewCount || 0}</span>
+          </div>
+        </div>
         <h3 className="text-sm font-semibold text-zinc-800 mt-1 leading-snug">{listing.title}</h3>
 
         {listing.description && (
@@ -241,11 +248,11 @@ function ListingCard({ listing }) {
                 <span> · до {new Date(listing.expiresAt).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}</span>
               )}
             </p>
-            {listing.viewCount > 0 && (
-              <p className="text-[10px] text-zinc-400">
-                👁 {listing.viewCount}
-              </p>
-            )}
+            {/* Завжди показуємо viewCount */}
+            <div className="flex items-center gap-1 text-zinc-400">
+              <span className="text-[10px]">👁</span>
+              <span className="text-[10px] font-medium">{listing.viewCount || 0}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -262,6 +269,7 @@ export default function MarketplacePage() {
   const [error,    setError]    = useState(null)
   const [category, setCategory] = useState("all")
   const [search,   setSearch]   = useState("")
+  const [sortBy,   setSortBy]   = useState("date") // "date" або "views"
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -282,6 +290,12 @@ export default function MarketplacePage() {
   const filtered = listings
     .filter(l => category === "all" || l.category === category)
     .filter(l => !search || l.title.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => {
+      if (sortBy === "views") {
+        return (b.viewCount || 0) - (a.viewCount || 0)
+      }
+      return new Date(b.createdAt) - new Date(a.createdAt)
+    })
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -291,7 +305,10 @@ export default function MarketplacePage() {
             <div>
               <h1 className="text-2xl font-bold text-zinc-900">Барахолка</h1>
               <p className="text-sm text-zinc-500 mt-1">
-                {listings.length > 0 ? `${listings.length} оголошень` : "Оголошення від учасників спільноти"}
+                {listings.length > 0 
+                  ? `${listings.length} оголошень · ${listings.reduce((sum, l) => sum + (l.viewCount || 0), 0)} переглядів`
+                  : "Оголошення від учасників спільноти"
+                }
               </p>
             </div>
             <a href={BOT_URL} target="_blank" rel="noopener noreferrer"
@@ -300,14 +317,38 @@ export default function MarketplacePage() {
             </a>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-4 flex items-center gap-3">
             <input
               type="text"
               placeholder="Пошук по оголошеннях..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full max-w-sm border border-zinc-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 bg-zinc-50"
+              className="flex-1 max-w-sm border border-zinc-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 bg-zinc-50"
             />
+            
+            {/* Сортування */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSortBy("date")}
+                className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                  sortBy === "date"
+                    ? "bg-zinc-900 text-white"
+                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                }`}
+              >
+                🕐 Нові
+              </button>
+              <button
+                onClick={() => setSortBy("views")}
+                className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                  sortBy === "views"
+                    ? "bg-zinc-900 text-white"
+                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                }`}
+              >
+                👁 Популярні
+              </button>
+            </div>
           </div>
 
           <div className="flex gap-2 flex-wrap mt-3">
