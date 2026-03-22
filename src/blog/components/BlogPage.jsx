@@ -201,7 +201,7 @@ export default function BlogPage() {
         * { box-sizing: border-box; }
       `}</style>
  
-      <div className="min-h-screen bg-[#f2f2f2]">
+      <div className="min-h-screen bg-[#000000]">
         <SocialButtons />
  
         {/* ── Top bar ──────────────────────────────────────────────────────── */}
@@ -264,13 +264,13 @@ export default function BlogPage() {
  
               {/* Hero post */}
               {hero && (
-                <div className="bg-white border border-[#e0e0e0] mb-1 shadow-sm">
+                <div className="bg-black border border-[#e0e0e0] mb-1 shadow-sm">
                   <HeroCard post={hero} />
                 </div>
               )}
  
               {/* Feed */}
-              <div className="bg-white border border-[#e0e0e0] shadow-sm">
+              <div className="bg-black border border-[#e0e0e0] shadow-sm">
                 <BlogFeed posts={feedPosts} />
               </div>
  
@@ -291,7 +291,7 @@ export default function BlogPage() {
             <aside className="w-[260px] flex-shrink-0 hidden lg:flex flex-col gap-3 sticky top-4">
  
               {/* Latest posts */}
-              <div className="bg-white border border-[#e0e0e0] shadow-sm">
+              <div className="bg-black border border-[#e0e0e0] shadow-sm">
                 <div className="bg-[#1a1a1a] px-3 py-2 flex items-center gap-2">
                   <div className="w-2 h-2 bg-[#cc0000]" />
                   <span className="font-futura font-black text-white text-[11px] uppercase tracking-widest">
@@ -306,7 +306,7 @@ export default function BlogPage() {
               </div>
  
               {/* Tag cloud */}
-              <div className="bg-white border border-[#e0e0e0] shadow-sm">
+              <div className="bg-gray border border-[#e0e0e0] shadow-sm">
                 <div className="bg-[#1a1a1a] px-3 py-2 flex items-center gap-2">
                   <div className="w-2 h-2 bg-[#cc0000]" />
                   <span className="font-futura font-black text-white text-[11px] uppercase tracking-widest">
