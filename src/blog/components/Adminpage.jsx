@@ -1897,7 +1897,6 @@
 //   )
 // }
 
-
 import { useEffect, useState, useRef, useCallback } from "react"
 
 const API_URL   = import.meta.env.VITE_API_URL
@@ -2037,48 +2036,67 @@ function EmojiPicker({ onSelect, onClose, anchor = "bottom" }) {
           </div>
         ))}
       </div>
+
+      <div className="px-3 py-1.5 bg-zinc-50 border-t border-zinc-100 flex items-center justify-between">
+        <span className="text-zinc-300 text-[9px] font-futura">
+          {recent.length > 0 ? `Недавние: ${recent.slice(0, 5).join(" ")}` : "Выберите эмодзи"}
+        </span>
+        {recent.length > 0 && (
+          <button onClick={() => { saveRecent([]); setRecent([]) }}
+            className="text-zinc-300 hover:text-zinc-500 text-[9px] cursor-pointer transition-colors font-futura">
+            Очистить
+          </button>
+        )}
+      </div>
     </div>
   )
 }
 
-// ─── Text Format Toolbar ──────────────────────────────────────────────────────
+// ─── Hook: вставка эмодзи в позицию курсора ──────────────────────────────────
 
-function FormatToolbar({ onFormat, onEmoji, showEmoji }) {
+function useEmojiInsert(value, onChange) {
+  const ref = useRef(null)
+
+  const insert = useCallback((emoji) => {
+    const el = ref.current
+    if (!el) { onChange(value + emoji); return }
+    const start = el.selectionStart ?? value.length
+    const end   = el.selectionEnd   ?? value.length
+    const next  = value.slice(0, start) + emoji + value.slice(end)
+    onChange(next)
+    const pos = start + emoji.length
+    requestAnimationFrame(() => {
+      el.focus()
+      el.setSelectionRange(pos, pos)
+    })
+  }, [value, onChange])
+
+  return { ref, insert }
+}
+
+// ─── EmojiFieldButton ─────────────────────────────────────────────────────────
+
+function EmojiFieldButton({ value, onChange, anchor = "bottom" }) {
+  const [open, setOpen] = useState(false)
+  const { insert } = useEmojiInsert(value, onChange)
+
   return (
-    <div className="flex items-center gap-1 p-2 bg-zinc-50 border-b border-zinc-200">
-      <button onClick={() => onFormat('bold')} 
-        className="px-2.5 py-1 text-sm font-bold border border-zinc-300 hover:bg-zinc-100 transition cursor-pointer font-futura" 
-        title="Bold">
-        <strong>B</strong>
+    <div className="relative flex-shrink-0">
+      <button type="button"
+        onClick={() => setOpen(v => !v)}
+        title="Вставить эмодзи"
+        className={`h-9 w-9 flex items-center justify-center border rounded-lg text-base transition-all cursor-pointer font-futura ${
+          open ? "bg-zinc-900 border-zinc-900 text-white" : "border-zinc-200 text-zinc-400 hover:border-zinc-400 hover:text-zinc-700"
+        }`}>
+        😊
       </button>
-      <button onClick={() => onFormat('italic')} 
-        className="px-2.5 py-1 text-sm italic border border-zinc-300 hover:bg-zinc-100 transition cursor-pointer font-futura" 
-        title="Italic">
-        I
-      </button>
-      <button onClick={() => onFormat('underline')} 
-        className="px-2.5 py-1 text-sm underline border border-zinc-300 hover:bg-zinc-100 transition cursor-pointer font-futura" 
-        title="Underline">
-        U
-      </button>
-      <div className="w-px h-5 bg-zinc-300 mx-1" />
-      <button onClick={() => onFormat('h1')} 
-        className="px-2.5 py-1 text-sm font-bold border border-zinc-300 hover:bg-zinc-100 transition cursor-pointer font-futura" 
-        title="Heading 1">
-        H1
-      </button>
-      <button onClick={() => onFormat('h2')} 
-        className="px-2.5 py-1 text-sm font-bold border border-zinc-300 hover:bg-zinc-100 transition cursor-pointer font-futura" 
-        title="Heading 2">
-        H2
-      </button>
-      <div className="w-px h-5 bg-zinc-300 mx-1" />
-      <button onClick={onEmoji} 
-        className="px-2.5 py-1 text-sm border border-zinc-300 hover:bg-zinc-100 transition cursor-pointer relative" 
-        title="Insert Emoji">
-        😀
-      </button>
-      {showEmoji && <span className="ml-auto text-[10px] text-zinc-400 font-futura">Emoji picker →</span>}
+      {open && (
+        <EmojiPicker
+          anchor={anchor}
+          onSelect={(emoji) => insert(emoji)}
+          onClose={() => setOpen(false)}
+        />
+      )}
     </div>
   )
 }
@@ -2089,7 +2107,6 @@ function Modal({ title, onClose, children, noCloseOnOutside = true }) {
   const contentRef = useRef(null)
 
   const handleBackdropClick = (e) => {
-    // Закрываем только если кликнули НА backdrop, а не на content
     if (noCloseOnOutside) return
     if (contentRef.current && !contentRef.current.contains(e.target)) {
       onClose()
@@ -2118,310 +2135,342 @@ function Modal({ title, onClose, children, noCloseOnOutside = true }) {
   )
 }
 
-// ─── Post Form (улучшенная форма с редактором форматирования) ─────────────────
+// ─── ПОЛНАЯ Post Form со ВСЕМ функционалом ────────────────────────────────────
 
-function PostForm({ initial, onSave, onCancel, onBump, loading }) {
+function PostForm({ initial = {}, onSave, onCancel, onBump, loading }) {
   const [form, setForm] = useState({
-    id: initial?.id || `post-${Date.now()}`,
-    title: initial?.title || "",
-    date: initial?.date || new Date().toISOString().split("T")[0],
-    tags: initial?.tags || [],
-    excerpt: initial?.excerpt || "",
-    content: initial?.content || "",
-    cover: initial?.cover || "",
-    photos: initial?.photos || [],
-    video: initial?.video || "",
-    videos: initial?.videos || [],
-    url: initial?.url || "",
-    type: initial?.type || "company",
-    status: initial?.status || "published",
+    title:   "",
+    content: "",
+    excerpt: "",
+    date:    new Date().toISOString().slice(0, 10),
+    tags:    [],
+    cover:   "",
+    url:     "",
+    videos:  [],
+    photos:  [],
+    source:  "",  // Пустой source чтобы убрать "от админа"
+    ...initial,
+    tags:   initial.tags   || [],
+    videos: initial.videos || [],
+    photos: initial.photos || [],
   })
-
-  const [uploads, setUploads] = useState({ cover: false, video: false, photos: [] })
-  const [showEmojiTitle, setShowEmojiTitle] = useState(false)
-  const [showEmojiExcerpt, setShowEmojiExcerpt] = useState(false)
-  const [showEmojiContent, setShowEmojiContent] = useState(false)
   
-  const titleRef = useRef(null)
-  const excerptRef = useRef(null)
-  const contentRef = useRef(null)
+  const [uploading, setUploading]         = useState(false)
+  const [uploadingExtra, setUploadingExtra] = useState(false)
+  const fileRef      = useRef()
+  const videosRef    = useRef()
+  const photosRef    = useRef()
 
-  const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
+  const titleRef   = useRef()
+  const excerptRef = useRef()
+  const contentRef = useRef()
 
-  const uploadFile = async (file, field) => {
-    const fd = new FormData()
-    fd.append("file", file)
-    setUploads(u => ({ ...u, [field]: true }))
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  // Проверка наличия видео для индикатора
+  const hasVideo = !!(form.url || form.video || (form.videos && form.videos.length > 0))
+
+  async function uploadFile(file, target = "cover") {
+    target === "cover" ? setUploading(true) : setUploadingExtra(true)
     try {
-      const res = await fetch(`${API_URL}/api/upload`, {
-        method: "POST",
-        headers: headers(),
-        body: fd
-      })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
-      if (field === "photos") {
-        update(field, [...form[field], data.url])
-      } else {
-        update(field, data.url)
+      const data = new FormData()
+      data.append("file", file)
+      const res  = await fetch(`${API_URL}/api/upload`, { method: "POST", headers: headers(), body: data })
+      const json = await res.json()
+      if (target === "cover") {
+        if (file.type.startsWith("video")) set("video", json.url)
+        else set("cover", json.url)
+      } else if (target === "videos") {
+        set("videos", [...(form.videos || []), json.url])
+      } else if (target === "photos") {
+        set("photos", [...(form.photos || []), json.url])
       }
-    } catch {
-      alert("Upload failed")
+    } catch (e) {
+      alert("Ошибка загрузки: " + e.message)
     } finally {
-      setUploads(u => ({ ...u, [field]: false }))
+      target === "cover" ? setUploading(false) : setUploadingExtra(false)
     }
   }
 
-  const handleFormat = (format, fieldRef) => {
-    const textarea = fieldRef.current
-    if (!textarea) return
-    
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = textarea.value.substring(start, end)
-    
-    let newText = textarea.value
-    let newCursorPos = end
-    
-    switch(format) {
-      case 'bold':
-        newText = textarea.value.substring(0, start) + `**${selectedText}**` + textarea.value.substring(end)
-        newCursorPos = end + 4
-        break
-      case 'italic':
-        newText = textarea.value.substring(0, start) + `*${selectedText}*` + textarea.value.substring(end)
-        newCursorPos = end + 2
-        break
-      case 'underline':
-        newText = textarea.value.substring(0, start) + `<u>${selectedText}</u>` + textarea.value.substring(end)
-        newCursorPos = end + 7
-        break
-      case 'h1':
-        newText = textarea.value.substring(0, start) + `# ${selectedText}` + textarea.value.substring(end)
-        newCursorPos = end + 2
-        break
-      case 'h2':
-        newText = textarea.value.substring(0, start) + `## ${selectedText}` + textarea.value.substring(end)
-        newCursorPos = end + 3
-        break
-    }
-    
-    // Обновляем соответствующее поле
-    if (fieldRef === titleRef) update('title', newText)
-    else if (fieldRef === excerptRef) update('excerpt', newText)
-    else if (fieldRef === contentRef) update('content', newText)
-    
-    // Возвращаем фокус и курсор
-    setTimeout(() => {
-      textarea.focus()
-      textarea.setSelectionRange(newCursorPos, newCursorPos)
-    }, 10)
-  }
-
-  const insertEmoji = (emoji, field) => {
-    const fieldRef = field === 'title' ? titleRef : field === 'excerpt' ? excerptRef : contentRef
-    const textarea = fieldRef.current
-    if (!textarea) return
-    
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const before = textarea.value.substring(0, start)
-    const after = textarea.value.substring(end)
-    
-    const newValue = before + emoji + after
-    update(field, newValue)
-    
-    setTimeout(() => {
-      textarea.focus()
-      textarea.setSelectionRange(start + emoji.length, start + emoji.length)
-    }, 10)
+  function toggleTag(tag) {
+    set("tags", form.tags.includes(tag)
+      ? form.tags.filter(t => t !== tag)
+      : [...form.tags, tag])
   }
 
   return (
-    <form className="space-y-4" onSubmit={e => { e.preventDefault(); onSave(form) }}>
-      {/* Title with formatting */}
-      <div>
-        <label className="block text-sm font-medium text-zinc-700 mb-2 font-futura">
-          Заголовок
-          <span className="ml-2 relative inline-block">
-            <button type="button" onClick={() => setShowEmojiTitle(!showEmojiTitle)}
-              className="text-lg hover:scale-110 transition-transform cursor-pointer">
-              😀
-            </button>
-            {showEmojiTitle && (
-              <EmojiPicker 
-                anchor="bottom"
-                onSelect={(e) => { insertEmoji(e, 'title'); setShowEmojiTitle(false) }}
-                onClose={() => setShowEmojiTitle(false)}
-              />
-            )}
-          </span>
-        </label>
-        <FormatToolbar 
-          onFormat={(fmt) => handleFormat(fmt, titleRef)}
-          onEmoji={() => setShowEmojiTitle(!showEmojiTitle)}
-          showEmoji={showEmojiTitle}
-        />
-        <input
-          ref={titleRef}
-          type="text"
-          className="w-full border border-zinc-200 rounded-lg px-4 py-2.5 text-base font-futura focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
-          value={form.title}
-          onChange={e => update("title", e.target.value)}
-          placeholder="Название поста"
-          required
-        />
-      </div>
+    <div className="space-y-4">
 
-      {/* Excerpt with formatting - УВЕЛИЧЕННАЯ ОБЛАСТЬ */}
+      {/* ── Короткое описание - ПЕРВОЕ ПОЛЕ ── */}
       <div>
-        <label className="block text-sm font-medium text-zinc-700 mb-2 font-futura">
-          Короткое описание
-          <span className="ml-2 relative inline-block">
-            <button type="button" onClick={() => setShowEmojiExcerpt(!showEmojiExcerpt)}
-              className="text-lg hover:scale-110 transition-transform cursor-pointer">
-              😀
-            </button>
-            {showEmojiExcerpt && (
-              <EmojiPicker 
-                anchor="bottom"
-                onSelect={(e) => { insertEmoji(e, 'excerpt'); setShowEmojiExcerpt(false) }}
-                onClose={() => setShowEmojiExcerpt(false)}
-              />
-            )}
-          </span>
-        </label>
-        <FormatToolbar 
-          onFormat={(fmt) => handleFormat(fmt, excerptRef)}
-          onEmoji={() => setShowEmojiExcerpt(!showEmojiExcerpt)}
-          showEmoji={showEmojiExcerpt}
-        />
-        <textarea
-          ref={excerptRef}
-          className="w-full border border-zinc-200 rounded-lg px-4 py-3 text-sm font-futura focus:ring-2 focus:ring-zinc-900 focus:border-transparent resize-none"
-          rows="6"
-          value={form.excerpt}
-          onChange={e => update("excerpt", e.target.value)}
-          placeholder="Краткое описание для превью (2-3 предложения)"
-        />
-      </div>
-
-      {/* Content with formatting */}
-      <div>
-        <label className="block text-sm font-medium text-zinc-700 mb-2 font-futura">
-          Полный текст
-          <span className="ml-2 relative inline-block">
-            <button type="button" onClick={() => setShowEmojiContent(!showEmojiContent)}
-              className="text-lg hover:scale-110 transition-transform cursor-pointer">
-              😀
-            </button>
-            {showEmojiContent && (
-              <EmojiPicker 
-                anchor="bottom"
-                onSelect={(e) => { insertEmoji(e, 'content'); setShowEmojiContent(false) }}
-                onClose={() => setShowEmojiContent(false)}
-              />
-            )}
-          </span>
-        </label>
-        <FormatToolbar 
-          onFormat={(fmt) => handleFormat(fmt, contentRef)}
-          onEmoji={() => setShowEmojiContent(!showEmojiContent)}
-          showEmoji={showEmojiContent}
-        />
-        <textarea
-          ref={contentRef}
-          className="w-full border border-zinc-200 rounded-lg px-4 py-3 text-sm font-futura focus:ring-2 focus:ring-zinc-900 focus:border-transparent resize-none"
-          rows="12"
-          value={form.content}
-          onChange={e => update("content", e.target.value)}
-          placeholder="Основной контент (Markdown поддерживается)"
-        />
-      </div>
-
-      {/* Date and Type */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 mb-2 font-futura">Дата</label>
-          <input
-            type="date"
-            className="w-full border border-zinc-200 rounded-lg px-4 py-2 text-sm font-futura"
-            value={form.date}
-            onChange={e => update("date", e.target.value)}
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide font-futura">Краткое описание</label>
+        <div className="mt-1 flex gap-1.5 items-center relative">
+          <textarea
+            ref={excerptRef}
+            className="flex-1 border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 font-futura resize-none"
+            rows="6"
+            value={form.excerpt || ""}
+            onChange={e => set("excerpt", e.target.value)}
+            placeholder="Краткое описание для превью (2-3 предложения)"
+          />
+          <EmojiFieldButton
+            value={form.excerpt || ""}
+            onChange={v => set("excerpt", v)}
+            anchor="bottom"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 mb-2 font-futura">Тип</label>
-          <select
-            className="w-full border border-zinc-200 rounded-lg px-4 py-2 text-sm font-futura"
-            value={form.type}
-            onChange={e => update("type", e.target.value)}
-          >
-            <option value="company">Company</option>
-            <option value="video">Video</option>
-          </select>
+      </div>
+
+      {/* ── Заголовок - ВТОРОЕ ПОЛЕ ── */}
+      <div>
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide font-futura">Заголовок *</label>
+        <div className="mt-1 flex gap-1.5 items-center relative">
+          <input
+            ref={titleRef}
+            className="flex-1 border border-zinc-200 rounded-lg px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-zinc-900 font-futura"
+            value={form.title}
+            onChange={e => set("title", e.target.value)}
+            placeholder="Заголовок поста"
+          />
+          <EmojiFieldButton
+            value={form.title}
+            onChange={v => set("title", v)}
+            anchor="bottom"
+          />
         </div>
       </div>
 
-      {/* Tags */}
+      {/* ── Дата ── */}
       <div>
-        <label className="block text-sm font-medium text-zinc-700 mb-2 font-futura">Теги</label>
-        <div className="flex gap-2 flex-wrap">
-          {TAGS.map(tag => (
-            <button key={tag} type="button"
-              onClick={() => {
-                const has = form.tags.includes(tag)
-                update("tags", has ? form.tags.filter(t => t !== tag) : [...form.tags, tag])
-              }}
-              className={`px-3 py-1.5 rounded-full text-xs border transition-all cursor-pointer font-futura ${
-                form.tags.includes(tag)
-                  ? "bg-zinc-900 text-white border-zinc-900"
-                  : "border-zinc-200 text-zinc-500 hover:border-zinc-400"
-              }`}>
-              {tag}
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide font-futura">Дата</label>
+        <input type="date"
+          className="mt-1 w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 font-futura"
+          value={form.date} onChange={e => set("date", e.target.value)} />
+      </div>
+
+      {/* ── Теги с произвольным вводом ── */}
+      <div>
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide font-futura">Теги</label>
+
+        {/* Активные теги с крестиком */}
+        {form.tags.length > 0 && (
+          <div className="mt-1 flex gap-1.5 flex-wrap mb-2">
+            {form.tags.map(tag => (
+              <span key={tag}
+                className="flex items-center gap-1 px-2.5 py-0.5 bg-zinc-900 text-white text-xs rounded-full font-futura">
+                #{tag}
+                <button type="button" onClick={() => set("tags", form.tags.filter(t => t !== tag))}
+                  className="text-white/50 hover:text-white leading-none cursor-pointer">✕</button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Быстрые пресеты */}
+        <div className="flex gap-1.5 flex-wrap mb-2">
+          {TAGS.filter(t => !form.tags.includes(t)).map(tag => (
+            <button key={tag} type="button" onClick={() => toggleTag(tag)}
+              className="px-2.5 py-0.5 rounded-full text-xs border border-dashed border-zinc-300 text-zinc-400 hover:border-zinc-600 hover:text-zinc-700 transition-all cursor-pointer font-futura">
+              +#{tag}
             </button>
           ))}
         </div>
+
+        {/* Произвольный тег — Enter чтобы добавить */}
+        <input
+          className="w-full border border-zinc-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 font-futura"
+          placeholder="Новый тег → Enter"
+          onKeyDown={e => {
+            if (e.key !== "Enter") return
+            e.preventDefault()
+            const val = e.target.value.trim().toLowerCase().replace(/\s+/g, "-")
+            if (val && !form.tags.includes(val)) set("tags", [...form.tags, val])
+            e.target.value = ""
+          }}
+        />
       </div>
 
-      {/* Media uploads */}
-      <div className="space-y-3">
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 mb-2 font-futura">Обложка</label>
-          <input type="file" accept="image/*" onChange={e => uploadFile(e.target.files[0], "cover")}
-            className="text-sm font-futura"
-            disabled={uploads.cover} />
-          {form.cover && <img src={form.cover} alt="" className="mt-2 w-32 h-32 object-cover rounded" />}
+      {/* ── Обложка ── */}
+      <div>
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide font-futura">Обложка / Фото</label>
+        <div className="mt-1 flex gap-2">
+          <input
+            className="flex-1 border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 font-futura"
+            value={form.cover || ""} onChange={e => set("cover", e.target.value)}
+            placeholder="URL или загрузи файл" />
+          <button type="button" onClick={() => fileRef.current.click()} disabled={uploading}
+            className="px-3 py-2 border border-zinc-200 rounded-lg text-sm hover:bg-zinc-50 transition whitespace-nowrap cursor-pointer font-futura disabled:opacity-50">
+            {uploading ? "⏳" : "📎 Загрузить"}
+          </button>
+          <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden"
+            onChange={e => e.target.files[0] && uploadFile(e.target.files[0], "cover")} />
         </div>
+        {form.cover && <img src={form.cover} className="mt-2 h-24 object-cover rounded-lg" alt="" />}
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-zinc-700 mb-2 font-futura">URL (YouTube/Rumble)</label>
-          <input type="url" className="w-full border border-zinc-200 rounded-lg px-4 py-2 text-sm font-futura"
-            value={form.url} onChange={e => update("url", e.target.value)}
-            placeholder="https://youtube.com/..." />
+      {/* ── URL (YouTube/Rumble) с индикатором видео ── */}
+      <div>
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide font-futura">
+          YouTube / Rumble URL
+          {hasVideo && (
+            <span className="ml-2 inline-flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+              </svg>
+              Видео есть
+            </span>
+          )}
+        </label>
+        <input
+          className="mt-1 w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 font-futura"
+          value={form.url || ""} onChange={e => set("url", e.target.value)}
+          placeholder="https://youtu.be/..." />
+      </div>
+
+      {/* ── Дополнительные видео ── */}
+      <div>
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide font-futura">
+          Дополнительные видео
+          <span className="ml-1 text-zinc-300 normal-case font-normal">(mp4, YouTube, Rumble)</span>
+        </label>
+        <div className="mt-1 space-y-1.5">
+          {(form.videos || []).map((v, i) => (
+            <div key={i} className="flex gap-2 items-center">
+              <input
+                className="flex-1 border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 font-futura"
+                value={v}
+                onChange={e => {
+                  const arr = [...form.videos]
+                  arr[i] = e.target.value
+                  set("videos", arr)
+                }}
+                placeholder="URL видео"
+              />
+              <button type="button"
+                onClick={() => set("videos", form.videos.filter((_, idx) => idx !== i))}
+                className="px-3 py-2 border border-red-200 text-red-600 rounded-lg text-sm hover:bg-red-50 transition cursor-pointer font-futura">
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 flex gap-2">
+          <button type="button"
+            onClick={() => set("videos", [...(form.videos || []), ""])}
+            className="px-3 py-2 border border-zinc-200 rounded-lg text-sm hover:bg-zinc-50 transition cursor-pointer font-futura">
+            + Добавить URL видео
+          </button>
+          <button type="button"
+            onClick={() => videosRef.current.click()}
+            disabled={uploadingExtra}
+            className="px-3 py-2 border border-zinc-200 rounded-lg text-sm hover:bg-zinc-50 transition whitespace-nowrap cursor-pointer disabled:opacity-50 font-futura">
+            {uploadingExtra ? "⏳" : "📎 Загрузить"}
+          </button>
+          <input ref={videosRef} type="file" accept="video/*" className="hidden" multiple
+            onChange={e => {
+              [...e.target.files].forEach(f => uploadFile(f, "videos"))
+              e.target.value = ""
+            }} />
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex gap-3 pt-4 border-t border-zinc-200">
-        {initial && onBump && (
-          <button type="button" onClick={() => onBump(form.id)}
-            className="px-4 py-2 border border-zinc-300 text-zinc-700 rounded-lg text-sm font-semibold hover:bg-zinc-50 transition font-futura"
-            disabled={loading}>
-            ↑ Поднять вверх
+      {/* ── Дополнительные фото ── */}
+      <div>
+        <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide font-futura">
+          Дополнительные фото
+        </label>
+        <div className="mt-1 space-y-1.5">
+          {(form.photos || []).map((p, i) => (
+            <div key={i} className="flex gap-2 items-center">
+              <input
+                className="flex-1 border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 font-futura"
+                value={p}
+                onChange={e => {
+                  const arr = [...form.photos]
+                  arr[i] = e.target.value
+                  set("photos", arr)
+                }}
+                placeholder="URL фото"
+              />
+              <button type="button"
+                onClick={() => set("photos", form.photos.filter((_, idx) => idx !== i))}
+                className="px-3 py-2 border border-red-200 text-red-600 rounded-lg text-sm hover:bg-red-50 transition cursor-pointer font-futura">
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 flex gap-2">
+          <button type="button"
+            onClick={() => set("photos", [...(form.photos || []), ""])}
+            className="px-3 py-2 border border-zinc-200 rounded-lg text-sm hover:bg-zinc-50 transition cursor-pointer font-futura">
+            + Добавить URL фото
+          </button>
+          <button type="button"
+            onClick={() => photosRef.current.click()}
+            disabled={uploadingExtra}
+            className="px-3 py-2 border border-zinc-200 rounded-lg text-sm hover:bg-zinc-50 transition whitespace-nowrap cursor-pointer disabled:opacity-50 font-futura">
+            {uploadingExtra ? "⏳" : "📎 Загрузить"}
+          </button>
+          <input ref={photosRef} type="file" accept="image/*" className="hidden" multiple
+            onChange={e => {
+              [...e.target.files].forEach(f => uploadFile(f, "photos"))
+              e.target.value = ""
+            }} />
+        </div>
+        {(form.photos || []).length > 0 && (
+          <div className="flex gap-2 flex-wrap mt-2">
+            {form.photos.map((p, i) => (
+              <img key={i} src={p} onError={e => e.target.style.display="none"}
+                className="h-16 w-24 object-cover rounded-lg border border-zinc-100" alt="" />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Текст поста ── */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide font-futura">Текст поста</label>
+          <div className="relative">
+            <EmojiFieldButton
+              value={form.content || ""}
+              onChange={v => set("content", v)}
+              anchor="top"
+            />
+          </div>
+        </div>
+        <textarea
+          ref={contentRef}
+          className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 h-40 resize-none font-futura"
+          value={form.content || ""}
+          onChange={e => set("content", e.target.value)}
+          placeholder="Основной текст..."
+        />
+        <p className="text-[10px] text-zinc-300 mt-1 font-futura">
+          Нажмите 😊 выше → выберите эмодзи → он вставится в позицию курсора
+        </p>
+      </div>
+
+      {/* ── Actions ── */}
+      <div className="flex gap-3 pt-2">
+        <button onClick={() => onSave(form)} disabled={!form.title || loading}
+          className="flex-1 py-2.5 bg-zinc-900 text-white rounded-lg text-sm font-semibold hover:bg-zinc-700 transition disabled:opacity-40 font-futura">
+          {loading ? "Сохранение..." : "Сохранить"}
+        </button>
+        {initial.id && onBump && (
+          <button type="button" onClick={() => onBump(initial.id)}
+            title="Поднять пост наверх ленты"
+            className="px-4 py-2.5 border border-zinc-200 rounded-lg text-sm hover:bg-zinc-900 hover:text-white hover:border-zinc-900 transition whitespace-nowrap font-futura">
+            ↑ Поднять
           </button>
         )}
-        <button type="submit"
-          className="px-6 py-2 bg-zinc-900 text-white rounded-lg text-sm font-semibold hover:bg-zinc-700 transition disabled:opacity-50 font-futura"
-          disabled={loading}>
-          {loading ? "⏳" : "Сохранить"}
-        </button>
-        <button type="button" onClick={onCancel}
-          className="px-4 py-2 border border-zinc-200 text-zinc-500 rounded-lg text-sm hover:bg-zinc-50 transition font-futura">
+        <button onClick={onCancel}
+          className="px-6 py-2.5 border border-zinc-200 rounded-lg text-sm hover:bg-zinc-50 transition font-futura">
           Отмена
         </button>
       </div>
-    </form>
+    </div>
   )
 }
 
@@ -2483,7 +2532,6 @@ function PostRow({ post, onEdit, onDelete, onApprove }) {
 // ─── Listing Row ──────────────────────────────────────────────────────────────
 
 function ListingRow({ listing, onApprove, onReject, onDelete }) {
-  const [rejecting, setRejecting] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
   return (
@@ -2747,7 +2795,6 @@ export default function AdminPage() {
       <div className="bg-white border-b border-zinc-200 px-6 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-zinc-900 font-futura">Админ панель</h1>
-          {/* Вкладки */}
           <div className="flex gap-1 mt-2">
             {[
               { id: "blog",   label: "📝 Блог",      count: posts.length,    badge: 0 },
@@ -2866,4 +2913,4 @@ export default function AdminPage() {
       )}
     </div>
   )
-} 
+}
