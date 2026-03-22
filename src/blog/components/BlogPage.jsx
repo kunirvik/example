@@ -241,7 +241,7 @@ export default function BlogPage() {
         </div>
  
         {/* ── Page body ────────────────────────────────────────────────────── */}
-        <div className="max-w-[1200px] mx-auto px-4 pt-4 pb-12">
+        <div className="max-w-[1200px] bg-black mx-auto px-4 pt-4 pb-12">
           <div className="flex gap-4 items-start">
  
             {/* ══ MAIN FEED ═════════════════════════════════════════════════ */}
