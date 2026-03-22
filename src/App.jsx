@@ -62,6 +62,7 @@ import AdminPage from "./blog/components/Adminpage";
 import AllGalleryPage from "./Allgallerypage";
 import MarketplacePage from "./Marketplacepage/Marketplacepage";
 
+
 function App() {
   const location = useLocation();
 
