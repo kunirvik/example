@@ -55,7 +55,6 @@
 //     </article>
 //   )
 // }
-
 import { Link, useLocation } from "react-router-dom"
 import { useEffect, useState } from "react"
 
@@ -126,13 +125,8 @@ export default function BlogCard({ post, index = 0 }) {
         {/* ── Content ── */}
         <div className="flex-1 min-w-0 px-4 py-3 flex flex-col justify-between">
           <div>
-            {/* Source + date */}
+            {/* Date (убран source) */}
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              {post.source && post.source !== "telegram" && (
-                <span className="text-[11px] font-bold text-[#555] uppercase tracking-wide font-futura">
-                  {post.source}
-                </span>
-              )}
               <span className={`text-[11px] font-bold px-1.5 py-0.5 font-futura ${
                 isRecent ? "bg-[#ffe600] text-[#333]" : "bg-[#f0f0f0] text-[#777]"
               }`}>
@@ -223,9 +217,6 @@ export function HeroCard({ post }) {
         <div className="flex-1 px-5 py-4 flex flex-col justify-between min-w-0">
           <div>
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              {post.source && post.source !== "telegram" && (
-                <span className="text-[11px] font-bold text-[#555] uppercase tracking-wide font-futura">{post.source}</span>
-              )}
               <span className="text-[11px] font-bold bg-[#ffe600] text-[#333] px-1.5 py-0.5 font-futura">{dateLabel}</span>
               <span className="text-[10px] font-bold bg-[#cc0000] text-white px-2 py-0.5 uppercase tracking-wide font-futura">Featured</span>
             </div>

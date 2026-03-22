@@ -1235,11 +1235,12 @@ function buildMediaList(post) {
     const type = forcedType ?? detectType(url)
     if (type) items.push({ url, type })
   }
-  if (post.cover) push(post.cover, "image")
-  post.photos?.forEach(u => push(u, "image"))
-  if (post.video) push(post.video, "mp4")
-  if (post.url) push(post.url)
-  post.videos?.forEach(u => push(u))
+  // Видео сначала, обложка в конце
+  if (post.url) push(post.url)  // YouTube/Rumble
+  if (post.video) push(post.video, "mp4")  // MP4 видео
+  post.videos?.forEach(u => push(u))  // Массив видео
+  if (post.cover) push(post.cover, "image")  // Обложка
+  post.photos?.forEach(u => push(u, "image"))  // Остальные фото
   return items
 }
 
@@ -1638,7 +1639,6 @@ export default function BlogPostModal() {
                   {/* Meta */}
                   <div className="flex flex-wrap items-center gap-3 text-[10px] font-futura uppercase tracking-wide text-white/30">
                     <time>{post.date}</time>
-                    {post.source && <><span className="w-0.5 h-0.5 bg-white/20 rounded-full" /><span>{post.source}</span></>}
                     {mediaList.length > 1 && <><span className="w-0.5 h-0.5 bg-white/20 rounded-full" /><span>{mediaList.length} media</span></>}
                     {isUpdated && post.updatedAt && (
                       <><span className="w-0.5 h-0.5 bg-white/20 rounded-full" />
