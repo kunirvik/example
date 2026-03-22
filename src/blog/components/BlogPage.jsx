@@ -205,7 +205,7 @@ export default function BlogPage() {
         <SocialButtons />
  
         {/* ── Top bar ──────────────────────────────────────────────────────── */}
-        <div className="bg-[#1a1a1a] border-b-2 border-[#cc0000]">
+        <div className="bg-[#797979] border-b-2 border-[#cc0000]">
           <div className="max-w-[1200px] mx-auto px-4 h-11 flex items-center gap-4">
             <h1 className="font-futura font-black text-white text-lg uppercase tracking-wider flex-shrink-0">
               News
