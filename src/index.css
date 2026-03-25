@@ -146,3 +146,377 @@ body{
 .scrollbar-none::-webkit-scrollbar {
   display: none;             /* Chrome, Safari */
 }
+
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+ 
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+ 
+/* ── Плавная анимация для модалки ────────────────────────────────────────── */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+ 
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+ 
+/* Применение анимации к модалке */
+.product-modal-overlay {
+  animation: modalFadeIn 0.2s ease-out;
+}
+ 
+.product-modal-content {
+  animation: modalSlideUp 0.3s ease-out;
+}
+ 
+/* ── Улучшенный hover для карточек ───────────────────────────────────────── */
+.listing-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+ 
+.listing-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+ 
+/* ── Анимация для счетчика просмотров ────────────────────────────────────── */
+@keyframes viewCountPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+ 
+.view-count-updated {
+  animation: viewCountPulse 0.5s ease-in-out;
+}
+ 
+/* ── Стили для кнопок в модалке ──────────────────────────────────────────── */
+.modal-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+ 
+.modal-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+ 
+.modal-button:hover::before {
+  width: 300px;
+  height: 300px;
+}
+ 
+/* ── Адаптивные медиа-запросы ────────────────────────────────────────────── */
+ 
+/* Мобильные устройства */
+@media (max-width: 640px) {
+  .product-modal-content {
+    border-radius: 0 !important;
+  }
+  
+  .modal-photo-gallery {
+    min-height: 250px !important;
+  }
+  
+  .modal-info-section {
+    max-height: calc(100vh - 250px) !important;
+  }
+}
+ 
+/* Планшеты */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .product-modal-content {
+    max-width: 90vw !important;
+  }
+}
+ 
+/* ── Улучшенный фокус для доступности ────────────────────────────────────── */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+}
+ 
+/* ── Плавная прокрутка для модалки ───────────────────────────────────────── */
+.modal-scroll-container {
+  scroll-behavior: smooth;
+}
+ 
+/* ── Индикатор загрузки для изображений ──────────────────────────────────── */
+@keyframes imageLoading {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: 200px 0;
+  }
+}
+ 
+.image-loading {
+  background: linear-gradient(
+    90deg,
+    #262626 0%,
+    #404040 50%,
+    #262626 100%
+  );
+  background-size: 200px 100%;
+  animation: imageLoading 1.5s infinite;
+}
+ 
+/* ── Стили для touch-устройств ───────────────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  /* Увеличенные области нажатия для мобильных */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  /* Убираем hover эффекты на touch-устройствах */
+  .listing-card:hover {
+    transform: none;
+  }
+  
+  /* Активное состояние для touch */
+  .listing-card:active {
+    transform: scale(0.98);
+  }
+}
+ 
+/* ── Градиент для текста с длинным описанием ─────────────────────────────── */
+.description-gradient {
+  position: relative;
+}
+ 
+.description-gradient::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(to bottom, transparent, #171717);
+  pointer-events: none;
+}
+ 
+/* ── Стили для статуса онлайн продавца ───────────────────────────────────── */
+.seller-online-indicator {
+  position: relative;
+}
+ 
+.seller-online-indicator::before {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  top: 0;
+  right: -2px;
+  border: 2px solid #171717;
+}
+ 
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+ 
+.seller-online-indicator::before {
+  animation: pulse 2s infinite;
+}
+ 
+/* ── Улучшенные стили для миниатюр фото ──────────────────────────────────── */
+.photo-thumbnail {
+  position: relative;
+  overflow: hidden;
+}
+ 
+.photo-thumbnail::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 0) 0%,
+    rgba(16, 185, 129, 0.2) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+ 
+.photo-thumbnail:hover::after {
+  opacity: 1;
+}
+ 
+/* ── Стили для badge категорий ───────────────────────────────────────────── */
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+ 
+.category-badge.mtb {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+ 
+.category-badge.bmx {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+ 
+.category-badge.skate {
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+}
+ 
+.category-badge.parts {
+  background: rgba(234, 179, 8, 0.1);
+  color: #eab308;
+}
+ 
+.category-badge.clothing {
+  background: rgba(236, 72, 153, 0.1);
+  color: #ec4899;
+}
+ 
+.category-badge.other {
+  background: rgba(115, 115, 115, 0.1);
+  color: #737373;
+}
+ 
+/* ── Skeleton loader для карточек ────────────────────────────────────────── */
+@keyframes skeleton-loading {
+  0% {
+    background-color: #262626;
+  }
+  50% {
+    background-color: #404040;
+  }
+  100% {
+    background-color: #262626;
+  }
+}
+ 
+.skeleton {
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+ 
+/* ── Стили для уведомлений ───────────────────────────────────────────────── */
+.notification-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 16px 24px;
+  background: #171717;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  animation: slideInRight 0.3s ease-out;
+}
+ 
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+ 
+/* ── Стили для кнопки "назад" в модалке (мобильные) ──────────────────────── */
+@media (max-width: 640px) {
+  .mobile-back-button {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(23, 23, 23, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #404040;
+  }
+}
+ 
+/* ── Accessibility improvements ──────────────────────────────────────────── */
+ 
+/* Skip to content link */
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+}
+ 
+.skip-to-content:focus {
+  left: 50%;
+  transform: translateX(-50%);
+  top: 20px;
+  background: #10b981;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 4px;
+}
+ 
+/* Reduced motion для пользователей с настройками доступности */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+ 
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .listing-card {
+    border-width: 2px;
+  }
+  
+  button,
+  a {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+}
