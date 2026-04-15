@@ -67,7 +67,7 @@ import SocialButtons from "../../SocialButtons/SocialButtons"
 
 // Lazy load для оптимизации
 const BlogFeed = lazy(() => import("./BlogFeed"))
-const LoadingScreen = lazy(() => import("../LoadingScreen/LoadingScreen"))
+const LoadingScreen = lazy(() => import("../../LoadingScreen/LodingScreen"))
 
 const PAGE_SIZE = 15
 const TAGS = ["all", "live", "construction", "parkramps", "bmx", "skate"]
