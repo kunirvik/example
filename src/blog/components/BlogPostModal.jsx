@@ -1204,7 +1204,7 @@
 import { useParams, useNavigate } from "react-router-dom"
 import { useEffect, useState, useCallback, memo } from "react"
 import { usePostsContext } from "./BlogPage"
-import TelegramComments from "../TelegramComments/TelegramComments"
+import TelegramComments from "../components/TelegramComments"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
