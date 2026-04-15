@@ -92,7 +92,7 @@ export default function ProductGallery({
               }}
             >
               <div className="w-full h-full flex items-center justify-center">
-                <img
+                {/* <img
                   ref={(el) => {
                     if (el && imageRefsMap) {
                       imageRefsMap.set(index, el);
@@ -111,7 +111,30 @@ export default function ProductGallery({
                   onTouchEnd={() => {
                     // Touch handling
                   }}
-                />
+                /> */}
+                <img
+  ref={(el) => {
+    if (!imageRefsMap?.current) return;
+    if (el) {
+      imageRefsMap.current.set(index, el);
+    } else {
+      imageRefsMap.current.delete(index);
+    }
+  }}
+  src={
+    selectedImageIndices[index] === 0
+      ? product.image
+      : product.altImages[selectedImageIndices[index] - 1]
+  }
+  alt={product.name}
+  className="max-h-full w-auto object-contain cursor-pointer"
+  draggable="false"
+  onMouseEnter={() => onMouseEnter(index, product)}
+  onMouseLeave={() => onMouseLeave(index)}
+  onTouchEnd={() => {
+    // Touch handling
+  }}
+/>
               </div>
             </SwiperSlide>
           ))}
