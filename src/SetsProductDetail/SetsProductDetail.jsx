@@ -104,6 +104,10 @@ const imageData = imageDataRef.current;
     mousePos: { x: 0, y: 0 },
   });
 
+  // ✅ БЫСТРО И ГЛАДКО
+const imageRefsMap = useRef(new Map()); // Хранит refs на img элементы
+
+
   // FIX 2: отдельный ref для inProgress — читается мгновенно без stale closure
   const animationInProgressRef = useRef(false);
 
@@ -203,23 +207,42 @@ const imageData = imageDataRef.current;
     return maxInterval - ratio * (maxInterval - minInterval);
   }, []);
 
-  const startHoverInterval = useCallback(
-    (index, product) => {
-      if (isTouchDevice) return;
-      clearInterval(refs.current.hoverInterval);
-      const totalImages = 1 + (product?.altImages?.length || 0);
-      if (totalImages <= 1) return;
-      const intervalDuration = getIntervalDuration(totalImages);
-      refs.current.hoverInterval = setInterval(() => {
-        setState((prev) => {
-          const newIndices = [...prev.selectedImageIndices];
-          newIndices[index] = (newIndices[index] ?? 0 + 1) % totalImages;
-          return { ...prev, selectedImageIndices: newIndices };
-        });
-      }, intervalDuration);
-    },
-    [isTouchDevice, getIntervalDuration]
-  );
+  // const startHoverInterval = useCallback(
+  //   (index, product) => {
+  //     if (isTouchDevice) return;
+  //     clearInterval(refs.current.hoverInterval);
+  //     const totalImages = 1 + (product?.altImages?.length || 0);
+  //     if (totalImages <= 1) return;
+  //     const intervalDuration = getIntervalDuration(totalImages);
+  //     refs.current.hoverInterval = setInterval(() => {
+  //       setState((prev) => {
+  //         const newIndices = [...prev.selectedImageIndices];
+  //         newIndices[index] = (newIndices[index] ?? 0 + 1) % totalImages;
+  //         return { ...prev, selectedImageIndices: newIndices };
+  //       });
+  //     }, intervalDuration);
+  //   },
+  //   [isTouchDevice, getIntervalDuration]
+  // );
+
+  const startHoverInterval = useCallback((index, product) => {
+  const totalImages = 1 + (product?.altImages?.length || 0);
+  if (totalImages <= 1) return;
+  
+  const allImages = [product.image, ...(product.altImages || [])];
+  let currentImageIndex = 0;
+  const intervalDuration = getIntervalDuration(totalImages);
+  
+  refs.current.hoverInterval = setInterval(() => {
+    const imgElement = imageRefsMap.current.get(index);
+    if (imgElement) {
+      currentImageIndex = (currentImageIndex + 1) % totalImages;
+      imgElement.src = allImages[currentImageIndex]; // ← Прямой DOM update
+      // БЕЗ setState, БЕЗ ре-рендера!
+    }
+  }, intervalDuration);
+}, [isTouchDevice, getIntervalDuration]);
+
 
   const isPointerOverSwiper = useCallback(() => {
     if (!refs.current.swiperContainer) return false;
@@ -855,6 +878,9 @@ const imageData = imageDataRef.current;
                       <SwiperSlide key={product.id} style={{ height: "100%", transform: `scale(${product.scale || 1})` }}>
                         <div className="w-full h-full flex items-center justify-center">
                           <img
+                           ref={(el) => {
+        if (el) imageRefsMap.current.set(index, el);
+      }}
                             src={
                               state.selectedImageIndices[index] === 0
                                 ? product.image
